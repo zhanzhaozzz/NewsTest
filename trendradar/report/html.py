@@ -683,7 +683,7 @@ def render_html_content(
     platform_labels = list(platform_stats.keys())[:6]  # 最多6个平台
     platform_counts = [platform_stats[k] for k in platform_labels]
 
-        html += f"""
+    html += f"""
             </div> <!-- End Masonry Grid -->
 
             <div class="footer">
