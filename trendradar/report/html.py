@@ -304,8 +304,21 @@ def render_html_content(
                 font-weight: 700;
                 color: var(--text-main);
                 display: flex;
-                align-items: center;
-                gap: 8px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }}
+            
+            .topic-main {{
+                font-size: 18px;
+                font-weight: 700;
+            }}
+            
+            .topic-keywords {{
+                font-size: 11px;
+                font-weight: 400;
+                color: #9ca3af;
+                line-height: 1.4;
             }}
 
             .topic-count {{
@@ -355,13 +368,15 @@ def render_html_content(
                 display: none;
             }}
             
-            /* 添加"查看更多"提示 */
-            .card.collapsed .card-header::after {{
-                content: '(显示前3条)';
-                font-size: 11px;
+            /* 折叠提示：在新闻列表底部显示 */
+            .card.collapsed .news-list::after {{
+                content: '点击标题查看全部';
+                display: block;
+                text-align: center;
+                padding: 12px;
+                font-size: 12px;
                 color: #9ca3af;
-                margin-left: 8px;
-                font-weight: 400;
+                font-style: italic;
             }}
             
             /* 滚动条样式 */
@@ -671,6 +686,17 @@ def render_html_content(
         word = html_escape(stat["word"])
         count = stat["count"]
         
+        # 拆分标题：如果包含 === 分隔符，提取主标题和关键词
+        main_title = word
+        keywords = ""
+        if "===" in word:
+            parts = word.split("===")
+            if len(parts) >= 2:
+                main_title = parts[1].strip()
+                # 获取第三部分作为关键词（如果存在）
+                if len(parts) >= 3:
+                    keywords = parts[2].strip()
+        
         header_class = "normal"
         count_class = "normal"
         if count >= 10:
@@ -683,8 +709,9 @@ def render_html_content(
             <div class="card">
                 <div class="card-header {header_class}" onclick="toggleCard(this)">
                     <div class="topic-title">
-                        {word}
-                                </div>
+                        <div class="topic-main">{main_title}</div>
+                        {f'<div class="topic-keywords">{keywords}</div>' if keywords else ''}
+                    </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <span class="topic-count {count_class}">{count} 条</span>
                         <span class="expand-icon">▼</span>
@@ -693,7 +720,16 @@ def render_html_content(
                 <div class="news-list">
         """
         
-        for idx, title_data in enumerate(stat["titles"], 1):
+        # 排序：优先按热度（hotness），其次按时间（时间越新越靠前）
+        sorted_titles = sorted(
+            stat["titles"],
+            key=lambda x: (
+                -(x.get("hotness", 0) or 0),  # 热度降序（负号表示从高到低）
+                -(x.get("timestamp", 0) or 0)  # 时间降序（越新越靠前）
+            )
+        )
+        
+        for idx, title_data in enumerate(sorted_titles, 1):
             title = html_escape(title_data["title"])
             source = html_escape(title_data["source_name"])
             url = title_data.get("mobile_url") or title_data.get("url", "")
