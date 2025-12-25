@@ -132,12 +132,14 @@ def render_html_content(
                 background: linear-gradient(to right, #60a5fa, #a78bfa);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
+                display: none;
             }}
 
             .brand-section p {{
-                margin: 4px 0 0 0;
-                opacity: 0.7;
-                font-size: 14px;
+                margin: 0;
+                opacity: 0.9;
+                font-size: 16px;
+                font-weight: 600;
             }}
 
             .action-buttons {{
@@ -237,29 +239,28 @@ def render_html_content(
                 max-height: 100%;
             }}
 
-            /* --- Masonry Layout --- */
+            /* --- Grid Layout --- */
             .masonry-grid {{
-                column-count: 3;
-                column-gap: 24px;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                gap: 24px;
             }}
             
-            @media (max-width: 1100px) {{
-                .masonry-grid {{ column-count: 2; }}
-            }}
-            
-            @media (max-width: 700px) {{
-                .masonry-grid {{ column-count: 1; }}
+            @media (max-width: 768px) {{
+                .masonry-grid {{
+                    grid-template-columns: 1fr;
+                }}
             }}
 
             .card {{
-                break-inside: avoid;
                 background: var(--card-bg);
                 border-radius: var(--border-radius);
                 box-shadow: var(--card-shadow);
-                margin-bottom: 24px;
                 overflow: hidden;
                 transition: transform 0.2s, box-shadow 0.2s;
                 border: 1px solid rgba(0,0,0,0.03);
+                display: flex;
+                flex-direction: column;
             }}
 
             .card:hover {{
@@ -334,14 +335,52 @@ def render_html_content(
             /* News List - 可展开收起 */
             .news-list {{
                 padding: 8px 0;
-                max-height: 2000px;
-                overflow: hidden;
-                transition: max-height 0.3s ease-out, opacity 0.3s;
+                max-height: 600px;
+                overflow-y: auto;
+                overflow-x: hidden;
+                transition: max-height 0.3s ease-out;
             }}
 
+            /* 折叠状态：只显示前3条新闻 */
             .card.collapsed .news-list {{
-                max-height: 0;
-                opacity: 0;
+                max-height: none;
+                overflow: visible;
+            }}
+            
+            .card.collapsed .news-item {{
+                display: flex;
+            }}
+            
+            .card.collapsed .news-item:nth-child(n+4) {{
+                display: none;
+            }}
+            
+            /* 添加"查看更多"提示 */
+            .card.collapsed .card-header::after {{
+                content: '(显示前3条)';
+                font-size: 11px;
+                color: #9ca3af;
+                margin-left: 8px;
+                font-weight: 400;
+            }}
+            
+            /* 滚动条样式 */
+            .news-list::-webkit-scrollbar {{
+                width: 6px;
+            }}
+            
+            .news-list::-webkit-scrollbar-track {{
+                background: #f1f1f1;
+                border-radius: 3px;
+            }}
+            
+            .news-list::-webkit-scrollbar-thumb {{
+                background: #cbd5e1;
+                border-radius: 3px;
+            }}
+            
+            .news-list::-webkit-scrollbar-thumb:hover {{
+                background: #94a3b8;
             }}
 
             .news-item {{
@@ -706,8 +745,7 @@ def render_html_content(
 
             <div class="footer">
                 <p>
-                    生成于 {now.strftime("%Y-%m-%d %H:%M:%S")} · 
-                    <a href="https://github.com/sansan0/TrendRadar" target="_blank">TrendRadar</a> 开源项目
+                    生成于 {now.strftime("%Y-%m-%d %H:%M:%S")}
                 </p>
                 {f'<p class="update-info">发现新版本 {update_info["remote_version"]}</p>' if update_info else ''}
             </div>
@@ -731,6 +769,14 @@ def render_html_content(
 
             // 初始化图表
             document.addEventListener('DOMContentLoaded', function() {{
+                // 默认折叠所有卡片（显示前3条新闻）
+                document.querySelectorAll('.card').forEach(card => {{
+                    const newsItems = card.querySelectorAll('.news-item');
+                    if (newsItems.length > 3) {{
+                        card.classList.add('collapsed');
+                    }}
+                }});
+
                 // 热度趋势图
                 const trendCtx = document.getElementById('trendChart').getContext('2d');
                 new Chart(trendCtx, {{

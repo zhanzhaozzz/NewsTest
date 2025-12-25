@@ -161,26 +161,41 @@ weight:
   hotness_weight: 0.1 # 热度权重
 
 # name 可以定义任意名称，只具有显示作用，即使项目运行了几天后，忽然改掉 name 也不会影响代码的正常运行
+# 投资者配置：聚焦财经、实时新闻
 platforms:
+  # === 核心财经平台（必选） ===
+  - id: "wallstreetcn-hot"
+    name: "华尔街见闻"
+  - id: "cls-hot"
+    name: "财联社热门"
+  - id: "cls-telegraph"
+    name: "财联社电报"
+  - id: "cls-depth"
+    name: "财联社深度"
+  - id: "36kr"
+    name: "36氪"
+  
+  # === 综合实时新闻（推荐） ===
   - id: "toutiao"
     name: "今日头条"
   - id: "baidu"
     name: "百度热搜"
-  - id: "wallstreetcn-hot"
-    name: "华尔街见闻"
-  - id: "thepaper"
-    name: "澎湃新闻"
-  - id: "bilibili-hot-search"
-    name: "bilibili 热搜"
-  - id: "cls-hot"
-    name: "财联社热门"
-  - id: "ifeng"
-    name: "凤凰网"
-  - id: "tieba"
-    name: "贴吧"
   - id: "weibo"
     name: "微博"
+  - id: "thepaper"
+    name: "澎湃新闻"
   - id: "douyin"
     name: "抖音"
+  
+  # === 可选：行业动态 ===
   - id: "zhihu"
     name: "知乎"
+
+  
+  # === 已禁用：娱乐类平台 ===
+  # - id: "bilibili-hot-search"
+  #   name: "bilibili 热搜"
+  # - id: "tieba"
+  #   name: "贴吧"
+  # - id: "ifeng"
+  #   name: "凤凰网"
