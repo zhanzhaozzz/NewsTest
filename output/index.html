@@ -149,6 +149,9 @@
                 border-radius: 12px;
                 padding: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.1);
+                height: 300px;
+                display: flex;
+                flex-direction: column;
             }
 
             .chart-title {
@@ -156,6 +159,17 @@
                 font-weight: 600;
                 margin-bottom: 12px;
                 opacity: 0.8;
+                flex-shrink: 0;
+            }
+            
+            .chart-wrapper {
+                flex: 1;
+                position: relative;
+                min-height: 0;
+            }
+            
+            .chart-wrapper canvas {
+                max-height: 100%;
             }
 
             /* --- Masonry Layout --- */
@@ -442,11 +456,11 @@
                 <div class="stats-row">
                     <div class="stat-card">
                         <span class="stat-label">新闻总数</span>
-                        <span class="stat-value">703<span class="stat-sub">条</span></span>
+                        <span class="stat-value">786<span class="stat-sub">条</span></span>
                     </div>
                     <div class="stat-card">
                         <span class="stat-label">热点话题</span>
-                        <span class="stat-value">14<span class="stat-sub">个</span></span>
+                        <span class="stat-value">15<span class="stat-sub">个</span></span>
                     </div>
                     <div class="stat-card">
                         <span class="stat-label">报告类型</span>
@@ -454,7 +468,7 @@
                     </div>
                     <div class="stat-card">
                         <span class="stat-label">生成时间</span>
-                        <span class="stat-value" style="font-size: 20px;">18:34</span>
+                        <span class="stat-value" style="font-size: 20px;">20:38</span>
                     </div>
                 </div>
 
@@ -462,11 +476,15 @@
                 <div class="charts-section">
                     <div class="chart-container">
                         <div class="chart-title">📊 热度趋势</div>
-                        <canvas id="trendChart" height="80"></canvas>
+                        <div class="chart-wrapper">
+                            <canvas id="trendChart"></canvas>
+                        </div>
                     </div>
                     <div class="chart-container">
                         <div class="chart-title">📱 平台分布</div>
-                        <canvas id="platformChart" height="120"></canvas>
+                        <div class="chart-wrapper">
+                            <canvas id="platformChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -482,7 +500,7 @@
                         美国 日本 韩国
                                 </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <span class="topic-count hot">37 条</span>
+                        <span class="topic-count hot">40 条</span>
                         <span class="expand-icon">▼</span>
                             </div>
                 </div>
@@ -494,7 +512,7 @@
                         <div class="news-meta">
                             <span class="tag tag-source">知乎</span>
                             
-                            <span class="tag tag-time">12:46-18:34</span>
+                            <span class="tag tag-time">12:46-20:38</span>
                         </div>
                         <a href="https://www.zhihu.com/question/1987239829688247081" 
                            class="news-link" target="_blank">强生爽身粉致癌案被判赔女子 110 亿元，为什么会被美国陪审团判赔这么多？真的能赔偿吗？</a>
@@ -511,6 +529,23 @@
                         <div class="news-meta">
                             <span class="tag tag-source">凤凰网</span>
                             
+                            <span class="tag tag-time">18:34-20:38</span>
+                        </div>
+                        <a href="https://news.ifeng.com/c/8pNJR35BTlS" 
+                           class="news-link" target="_blank">自己菜竟怪别人打压，“中方阻碍美国自主化稀土加工产业”</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 凤凰网 关于 自己菜竟怪别人打压，“中方阻碍美国自主化稀土加工产业”... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">凤凰网</span>
+                            
                             <span class="tag tag-time">10:11-12:46</span>
                         </div>
                         <a href="https://news.ifeng.com/c/8pMksqZddde" 
@@ -523,7 +558,41 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">3</div>
+                    <div class="news-index">4</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">bilibili 热搜</span>
+                            
+                            <span class="tag tag-time">10:11-20:38</span>
+                        </div>
+                        <a href="https://search.bilibili.com/all?keyword=%E6%B2%88%E9%80%B8%E8%A7%A3%E6%9E%90%E7%BE%8E%E5%9B%BD%E6%96%A9%E6%9D%80%E7%BA%BF" 
+                           class="news-link" target="_blank">沈逸解析美国斩杀线</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 bilibili 热搜 关于 沈逸解析美国斩杀线... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">贴吧</span>
+                            
+                            <span class="tag tag-time">00:02-20:38</span>
+                        </div>
+                        <a href="https://tieba.baidu.com/hottopic/browse/hottopic?topic_id=28348353&amp;amp;topic_name=%E4%B8%80%E5%A4%9C%E8%BF%94%E8%B4%AB%21%E7%BE%8E%E5%9B%BD%E5%AF%8C%E7%BF%81%E4%B9%9F%E9%9A%BE%E9%80%83%E6%96%A9%E6%9D%80" 
+                           class="news-link" target="_blank">一夜返贫!美国富翁也难逃斩杀</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 贴吧 关于 一夜返贫!美国富翁也难逃斩杀... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">6</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">凤凰网</span>
@@ -540,24 +609,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">4</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">bilibili 热搜</span>
-                            
-                            <span class="tag tag-time">10:11-18:34</span>
-                        </div>
-                        <a href="https://search.bilibili.com/all?keyword=%E6%B2%88%E9%80%B8%E8%A7%A3%E6%9E%90%E7%BE%8E%E5%9B%BD%E6%96%A9%E6%9D%80%E7%BA%BF" 
-                           class="news-link" target="_blank">沈逸解析美国斩杀线</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 bilibili 热搜 关于 沈逸解析美国斩杀线... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
-                <div class="news-item">
-                    <div class="news-index">5</div>
+                    <div class="news-index">7</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">凤凰网</span>
@@ -569,40 +621,6 @@
                         <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                         <div class="news-preview">
                             这是一条来自 凤凰网 关于 升级！美国罕见制裁欧盟前官员... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
-                <div class="news-item">
-                    <div class="news-index">6</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">凤凰网</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
-                        </div>
-                        <a href="https://news.ifeng.com/c/8pNJR35BTlS" 
-                           class="news-link" target="_blank">自己菜竟怪别人打压，“中方阻碍美国自主化稀土加工产业”</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 凤凰网 关于 自己菜竟怪别人打压，“中方阻碍美国自主化稀土加工产业”... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
-                <div class="news-item">
-                    <div class="news-index">7</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">贴吧</span>
-                            
-                            <span class="tag tag-time">00:02-18:34</span>
-                        </div>
-                        <a href="https://tieba.baidu.com/hottopic/browse/hottopic?topic_id=28348353&amp;amp;topic_name=%E4%B8%80%E5%A4%9C%E8%BF%94%E8%B4%AB%21%E7%BE%8E%E5%9B%BD%E5%AF%8C%E7%BF%81%E4%B9%9F%E9%9A%BE%E9%80%83%E6%96%A9%E6%9D%80" 
-                           class="news-link" target="_blank">一夜返贫!美国富翁也难逃斩杀</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 贴吧 关于 一夜返贫!美国富翁也难逃斩杀... 的新闻。点击标题查看详情。
                         </div>
                     </div>
                 </div>
@@ -662,6 +680,40 @@
                     <div class="news-index">11</div>
                     <div class="news-content">
                         <div class="news-meta">
+                            <span class="tag tag-source">贴吧</span>
+                            
+                            <span class="tag tag-time">12:46-20:38</span>
+                        </div>
+                        <a href="https://tieba.baidu.com/hottopic/browse/hottopic?topic_id=28348372&amp;amp;topic_name=%E6%96%A9%E6%9D%80%E7%BA%BF%E6%8F%AD%E5%BC%80%E7%BE%8E%E5%9B%BD%E4%B8%80%E8%A7%92%2C%E6%AE%96%E4%BA%BA%E5%85%88%E6%80%A5%E4%BA%86" 
+                           class="news-link" target="_blank">斩杀线揭开美国一角,殖人先急了</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 贴吧 关于 斩杀线揭开美国一角,殖人先急了... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">12</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">知乎</span>
+                            
+                            <span class="tag tag-time">10:11-20:38</span>
+                        </div>
+                        <a href="https://www.zhihu.com/question/1986918666340677378" 
+                           class="news-link" target="_blank">美国人头上都有条成为流浪汉的「斩杀线」么，从经济角度如何看待这种现象？「斩杀线」背后的本质是什么？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 知乎 关于 美国人头上都有条成为流浪汉的「斩杀线」么，从经济角度如何看待... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">13</div>
+                    <div class="news-content">
+                        <div class="news-meta">
                             <span class="tag tag-source">bilibili 热搜</span>
                             
                             <span class="tag tag-time">00:02-12:46</span>
@@ -676,24 +728,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">12</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">贴吧</span>
-                            
-                            <span class="tag tag-time">12:46-18:34</span>
-                        </div>
-                        <a href="https://tieba.baidu.com/hottopic/browse/hottopic?topic_id=28348372&amp;amp;topic_name=%E6%96%A9%E6%9D%80%E7%BA%BF%E6%8F%AD%E5%BC%80%E7%BE%8E%E5%9B%BD%E4%B8%80%E8%A7%92%2C%E6%AE%96%E4%BA%BA%E5%85%88%E6%80%A5%E4%BA%86" 
-                           class="news-link" target="_blank">斩杀线揭开美国一角,殖人先急了</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 贴吧 关于 斩杀线揭开美国一角,殖人先急了... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
-                <div class="news-item">
-                    <div class="news-index">13</div>
+                    <div class="news-index">14</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">华尔街见闻</span>
@@ -705,23 +740,6 @@
                         <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                         <div class="news-preview">
                             这是一条来自 华尔街见闻 关于 特朗普要“确保太空优势”，美国“太空股”会成为下一个“量子科... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
-                <div class="news-item">
-                    <div class="news-index">14</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">知乎</span>
-                            
-                            <span class="tag tag-time">10:11-18:34</span>
-                        </div>
-                        <a href="https://www.zhihu.com/question/1986918666340677378" 
-                           class="news-link" target="_blank">美国人头上都有条成为流浪汉的「斩杀线」么，从经济角度如何看待这种现象？「斩杀线」背后的本质是什么？</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 知乎 关于 美国人头上都有条成为流浪汉的「斩杀线」么，从经济角度如何看待... 的新闻。点击标题查看详情。
                         </div>
                     </div>
                 </div>
@@ -764,6 +782,40 @@
                     <div class="news-index">17</div>
                     <div class="news-content">
                         <div class="news-meta">
+                            <span class="tag tag-source">凤凰网</span>
+                            
+                            <span class="tag tag-time">18:34-20:38</span>
+                        </div>
+                        <a href="https://news.ifeng.com/c/8pN2aQOWl4l" 
+                           class="news-link" target="_blank">反转？美特使最新表态：美国无意征服</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 凤凰网 关于 反转？美特使最新表态：美国无意征服... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">18</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">抖音</span>
+                            
+                            <span class="tag tag-time">18:34-20:38</span>
+                        </div>
+                        <a href="https://www.douyin.com/hot/2346980" 
+                           class="news-link" target="_blank">欧盟警告反制美国</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 抖音 关于 欧盟警告反制美国... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">19</div>
+                    <div class="news-content">
+                        <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
                             
                             <span class="tag tag-time">12:46</span>
@@ -778,7 +830,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">18</div>
+                    <div class="news-index">20</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">知乎</span>
@@ -795,24 +847,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">19</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">凤凰网</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
-                        </div>
-                        <a href="https://news.ifeng.com/c/8pN2aQOWl4l" 
-                           class="news-link" target="_blank">反转？美特使最新表态：美国无意征服</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 凤凰网 关于 反转？美特使最新表态：美国无意征服... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
-                <div class="news-item">
-                    <div class="news-index">20</div>
+                    <div class="news-index">21</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">凤凰网</span>
@@ -829,7 +864,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">21</div>
+                    <div class="news-index">22</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">bilibili 热搜</span>
@@ -846,7 +881,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">22</div>
+                    <div class="news-index">23</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
@@ -863,7 +898,24 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">23</div>
+                    <div class="news-index">24</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">微博</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">20:38</span>
+                        </div>
+                        <a href="https://s.weibo.com/weibo?q=%23%E8%BF%99%E4%B8%AA%E8%8A%82%E7%BE%8E%E5%9B%BD%E4%BA%BA%E8%BF%87%E5%BE%97%E4%B8%8D%E5%A4%AA%E8%88%92%E5%BF%83%23&amp;t=31&amp;band_rank=9&amp;Refer=top" 
+                           class="news-link" target="_blank">这个节美国人过得不太舒心</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 微博 关于 这个节美国人过得不太舒心... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">25</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">凤凰网</span>
@@ -880,7 +932,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">24</div>
+                    <div class="news-index">26</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">知乎</span>
@@ -897,7 +949,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">25</div>
+                    <div class="news-index">27</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
@@ -914,24 +966,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">26</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">抖音</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
-                        </div>
-                        <a href="https://www.douyin.com/hot/2346980" 
-                           class="news-link" target="_blank">欧盟警告反制美国</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 抖音 关于 欧盟警告反制美国... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
-                <div class="news-item">
-                    <div class="news-index">27</div>
+                    <div class="news-index">28</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">澎湃新闻</span>
@@ -948,7 +983,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">28</div>
+                    <div class="news-index">29</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
@@ -965,7 +1000,24 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">29</div>
+                    <div class="news-index">30</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">今日头条</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">20:38</span>
+                        </div>
+                        <a href="https://www.toutiao.com/trending/7587712017306927131/" 
+                           class="news-link" target="_blank">高市早苗亲信鼓吹“日本应拥核”</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 今日头条 关于 高市早苗亲信鼓吹“日本应拥核”... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">31</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">百度热搜</span>
@@ -982,7 +1034,24 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">30</div>
+                    <div class="news-index">32</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">今日头条</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">20:38</span>
+                        </div>
+                        <a href="https://www.toutiao.com/trending/7586627294103732230/" 
+                           class="news-link" target="_blank">当美国人被一条“斩杀线”击中</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 今日头条 关于 当美国人被一条“斩杀线”击中... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">33</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">微博</span>
@@ -999,7 +1068,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">31</div>
+                    <div class="news-index">34</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">微博</span>
@@ -1016,7 +1085,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">32</div>
+                    <div class="news-index">35</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">抖音</span>
@@ -1033,11 +1102,11 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">33</div>
+                    <div class="news-index">36</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
-                            <span class="tag tag-new">NEW</span>
+                            
                             <span class="tag tag-time">18:34</span>
                         </div>
                         <a href="https://www.toutiao.com/trending/7586689817736986662/" 
@@ -1050,7 +1119,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">34</div>
+                    <div class="news-index">37</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
@@ -1067,7 +1136,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">35</div>
+                    <div class="news-index">38</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">bilibili 热搜</span>
@@ -1084,11 +1153,11 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">36</div>
+                    <div class="news-index">39</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">抖音</span>
-                            <span class="tag tag-new">NEW</span>
+                            
                             <span class="tag tag-time">18:34</span>
                         </div>
                         <a href="https://www.douyin.com/hot/2346875" 
@@ -1101,7 +1170,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">37</div>
+                    <div class="news-index">40</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">微博</span>
@@ -1126,7 +1195,7 @@
                         国产 中国
                                 </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <span class="topic-count hot">29 条</span>
+                        <span class="topic-count hot">30 条</span>
                         <span class="expand-icon">▼</span>
                             </div>
                 </div>
@@ -1187,6 +1256,40 @@
                     <div class="news-index">4</div>
                     <div class="news-content">
                         <div class="news-meta">
+                            <span class="tag tag-source">bilibili 热搜</span>
+                            
+                            <span class="tag tag-time">10:11-20:38</span>
+                        </div>
+                        <a href="https://search.bilibili.com/all?keyword=%E7%9B%98%E7%82%B92025%E4%B8%AD%E5%9B%BD%E7%94%B5%E7%AB%9E%E8%A1%A8%E7%8E%B0" 
+                           class="news-link" target="_blank">盘点2025中国电竞表现</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 bilibili 热搜 关于 盘点2025中国电竞表现... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">凤凰网</span>
+                            
+                            <span class="tag tag-time">18:34-20:38</span>
+                        </div>
+                        <a href="https://news.ifeng.com/c/8pMwqjZ8H6f" 
+                           class="news-link" target="_blank">扎哈罗娃生日获普京颁发勋章：在中国长大，能讲一口流利北京话</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 凤凰网 关于 扎哈罗娃生日获普京颁发勋章：在中国长大，能讲一口流利北京话... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">6</div>
+                    <div class="news-content">
+                        <div class="news-meta">
                             <span class="tag tag-source">知乎</span>
                             
                             <span class="tag tag-time">10:11-12:46</span>
@@ -1201,7 +1304,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">5</div>
+                    <div class="news-index">7</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">凤凰网</span>
@@ -1218,7 +1321,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">6</div>
+                    <div class="news-index">8</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">凤凰网</span>
@@ -1235,7 +1338,24 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">7</div>
+                    <div class="news-index">9</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">知乎</span>
+                            
+                            <span class="tag tag-time">18:34-20:38</span>
+                        </div>
+                        <a href="https://www.zhihu.com/question/1987426605316924152" 
+                           class="news-link" target="_blank">美国宣布未来 18 个月不对中国芯片加征额外关税，会对芯片市场带来怎样的影响？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 知乎 关于 美国宣布未来 18 个月不对中国芯片加征额外关税，会对芯片市... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">10</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">澎湃新闻</span>
@@ -1252,7 +1372,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">8</div>
+                    <div class="news-index">11</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">百度热搜</span>
@@ -1269,24 +1389,24 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">9</div>
+                    <div class="news-index">12</div>
                     <div class="news-content">
                         <div class="news-meta">
-                            <span class="tag tag-source">bilibili 热搜</span>
+                            <span class="tag tag-source">百度热搜</span>
                             
-                            <span class="tag tag-time">10:11-18:34</span>
+                            <span class="tag tag-time">18:34-20:38</span>
                         </div>
-                        <a href="https://search.bilibili.com/all?keyword=%E7%9B%98%E7%82%B92025%E4%B8%AD%E5%9B%BD%E7%94%B5%E7%AB%9E%E8%A1%A8%E7%8E%B0" 
-                           class="news-link" target="_blank">盘点2025中国电竞表现</a>
+                        <a href="https://www.baidu.com/s?wd=%E4%BF%9D%E6%97%B6%E6%8D%B7%E4%B8%AD%E5%9B%BD%E5%9B%9E%E5%BA%94%E9%83%91%E5%B7%9E%E4%B8%80%E9%97%A8%E5%BA%97%E7%96%91%E4%BC%BC%E8%B7%91%E8%B7%AF" 
+                           class="news-link" target="_blank">保时捷中国回应郑州一门店疑似跑路</a>
                         <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                         <div class="news-preview">
-                            这是一条来自 bilibili 热搜 关于 盘点2025中国电竞表现... 的新闻。点击标题查看详情。
+                            这是一条来自 百度热搜 关于 保时捷中国回应郑州一门店疑似跑路... 的新闻。点击标题查看详情。
                         </div>
                     </div>
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">10</div>
+                    <div class="news-index">13</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">凤凰网</span>
@@ -1303,24 +1423,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">11</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">凤凰网</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
-                        </div>
-                        <a href="https://news.ifeng.com/c/8pMwqjZ8H6f" 
-                           class="news-link" target="_blank">扎哈罗娃生日获普京颁发勋章：在中国长大，能讲一口流利北京话</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 凤凰网 关于 扎哈罗娃生日获普京颁发勋章：在中国长大，能讲一口流利北京话... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
-                <div class="news-item">
-                    <div class="news-index">12</div>
+                    <div class="news-index">14</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">澎湃新闻</span>
@@ -1337,7 +1440,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">13</div>
+                    <div class="news-index">15</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
@@ -1354,7 +1457,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">14</div>
+                    <div class="news-index">16</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">凤凰网</span>
@@ -1371,24 +1474,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">15</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">知乎</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
-                        </div>
-                        <a href="https://www.zhihu.com/question/1987426605316924152" 
-                           class="news-link" target="_blank">美国宣布未来 18 个月不对中国芯片加征额外关税，会对芯片市场带来怎样的影响？</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 知乎 关于 美国宣布未来 18 个月不对中国芯片加征额外关税，会对芯片市... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
-                <div class="news-item">
-                    <div class="news-index">16</div>
+                    <div class="news-index">17</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">抖音</span>
@@ -1405,11 +1491,11 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">17</div>
+                    <div class="news-index">18</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
-                            <span class="tag tag-new">NEW</span>
+                            
                             <span class="tag tag-time">18:34</span>
                         </div>
                         <a href="https://www.toutiao.com/trending/7587690320272297478/" 
@@ -1422,7 +1508,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">18</div>
+                    <div class="news-index">19</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">百度热搜</span>
@@ -1439,7 +1525,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">19</div>
+                    <div class="news-index">20</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">知乎</span>
@@ -1456,7 +1542,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">20</div>
+                    <div class="news-index">21</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
@@ -1473,7 +1559,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">21</div>
+                    <div class="news-index">22</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
@@ -1490,7 +1576,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">22</div>
+                    <div class="news-index">23</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
@@ -1507,7 +1593,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">23</div>
+                    <div class="news-index">24</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">澎湃新闻</span>
@@ -1524,7 +1610,24 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">24</div>
+                    <div class="news-index">25</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">澎湃新闻</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">20:38</span>
+                        </div>
+                        <a href="https://m.thepaper.cn/newsDetail_forward_32247365" 
+                           class="news-link" target="_blank">美发布2025年《中国军力报告》：赶工迹象、矛盾和臆测炒作</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 澎湃新闻 关于 美发布2025年《中国军力报告》：赶工迹象、矛盾和臆测炒作... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">26</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
@@ -1541,7 +1644,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">25</div>
+                    <div class="news-index">27</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
@@ -1558,7 +1661,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">26</div>
+                    <div class="news-index">28</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">百度热搜</span>
@@ -1575,7 +1678,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">27</div>
+                    <div class="news-index">29</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
@@ -1592,7 +1695,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">28</div>
+                    <div class="news-index">30</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
@@ -1608,33 +1711,16 @@
                     </div>
                 </div>
             
-                <div class="news-item">
-                    <div class="news-index">29</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">百度热搜</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
-                        </div>
-                        <a href="https://www.baidu.com/s?wd=%E4%BF%9D%E6%97%B6%E6%8D%B7%E4%B8%AD%E5%9B%BD%E5%9B%9E%E5%BA%94%E9%83%91%E5%B7%9E%E4%B8%80%E9%97%A8%E5%BA%97%E7%96%91%E4%BC%BC%E8%B7%91%E8%B7%AF" 
-                           class="news-link" target="_blank">保时捷中国回应郑州一门店疑似跑路</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 百度热搜 关于 保时捷中国回应郑州一门店疑似跑路... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
                 </div>
             </div>
         
             <div class="card">
-                <div class="card-header normal" onclick="toggleCard(this)">
+                <div class="card-header warm" onclick="toggleCard(this)">
                     <div class="topic-title">
                         机器人
                                 </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <span class="topic-count normal">4 条</span>
+                        <span class="topic-count normal">5 条</span>
                         <span class="expand-icon">▼</span>
                             </div>
                 </div>
@@ -1679,8 +1765,8 @@
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">财联社热门</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
+                            
+                            <span class="tag tag-time">18:34-20:38</span>
                         </div>
                         <a href="https://www.cls.cn/detail/2240066" 
                            class="news-link" target="_blank">【焦点复盘】创业板指探底回升收获5连涨，全市场超3700股飘红，机器人概念现批量涨停</a>
@@ -1695,8 +1781,25 @@
                     <div class="news-index">4</div>
                     <div class="news-content">
                         <div class="news-meta">
-                            <span class="tag tag-source">抖音</span>
+                            <span class="tag tag-source">财联社热门</span>
                             <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">20:38</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2240212" 
+                           class="news-link" target="_blank">年终巨献：机器人述职报告</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社热门 关于 年终巨献：机器人述职报告... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">抖音</span>
+                            
                             <span class="tag tag-time">18:34</span>
                         </div>
                         <a href="https://www.douyin.com/hot/2346977" 
@@ -1779,8 +1882,8 @@
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">财联社热门</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
+                            
+                            <span class="tag tag-time">18:34-20:38</span>
                         </div>
                         <a href="https://www.cls.cn/detail/2240089" 
                            class="news-link" target="_blank">【数据看盘】7.39亿元资金抢筹金风科技 多家实力游资集体出逃海南发展</a>
@@ -1845,7 +1948,7 @@
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">今日头条</span>
-                            <span class="tag tag-new">NEW</span>
+                            
                             <span class="tag tag-time">18:34</span>
                         </div>
                         <a href="https://www.toutiao.com/trending/7587632454770442259/" 
@@ -1876,9 +1979,26 @@
                     <div class="news-index">1</div>
                     <div class="news-content">
                         <div class="news-meta">
+                            <span class="tag tag-source">微博</span>
+                            
+                            <span class="tag tag-time">20:38</span>
+                        </div>
+                        <a href="https://s.weibo.com/weibo?q=%23%E5%88%98%E5%BC%BA%E4%B8%9C%E5%8F%91%E5%A5%96%E9%87%91%E6%9C%89%E5%91%98%E5%B7%A5%E5%A4%9A%E6%8B%BF1%E5%B9%B4%E5%B7%A5%E8%B5%84%23&amp;t=31&amp;band_rank=5&amp;Refer=top" 
+                           class="news-link" target="_blank">刘强东发奖金有员工多拿1年工资</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 微博 关于 刘强东发奖金有员工多拿1年工资... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
                             <span class="tag tag-source">百度热搜</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
+                            
+                            <span class="tag tag-time">18:34-20:38</span>
                         </div>
                         <a href="https://www.baidu.com/s?wd=%E4%BA%AC%E4%B8%9C%E5%B9%B4%E7%BB%88%E5%A5%96%EF%BC%9A%E9%87%87%E9%94%80%E5%B9%B3%E5%9D%8725%E8%96%AA+%E4%B8%8A%E4%B8%8D%E5%B0%81%E9%A1%B6" 
                            class="news-link" target="_blank">京东年终奖：采销平均25薪 上不封顶</a>
@@ -1890,7 +2010,7 @@
                 </div>
             
                 <div class="news-item">
-                    <div class="news-index">2</div>
+                    <div class="news-index">3</div>
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">贴吧</span>
@@ -1902,23 +2022,6 @@
                         <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                         <div class="news-preview">
                             这是一条来自 贴吧 关于 内鬼里应外合,京东痛失亿元商品... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
-                <div class="news-item">
-                    <div class="news-index">3</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">微博</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
-                        </div>
-                        <a href="https://s.weibo.com/weibo?q=%23%E5%88%98%E5%BC%BA%E4%B8%9C%E5%8F%91%E5%A5%96%E9%87%91%E6%9C%89%E5%91%98%E5%B7%A5%E5%A4%9A%E6%8B%BF1%E5%B9%B4%E5%B7%A5%E8%B5%84%23&amp;t=31&amp;band_rank=9&amp;Refer=top" 
-                           class="news-link" target="_blank">刘强东发奖金有员工多拿1年工资</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 微博 关于 刘强东发奖金有员工多拿1年工资... 的新闻。点击标题查看详情。
                         </div>
                     </div>
                 </div>
@@ -1944,7 +2047,7 @@
                         <div class="news-meta">
                             <span class="tag tag-source">华尔街见闻</span>
                             
-                            <span class="tag tag-time">10:11-18:34</span>
+                            <span class="tag tag-time">10:11-20:38</span>
                         </div>
                         <a href="https://wallstreetcn.com/articles/3762030" 
                            class="news-link" target="_blank">200亿美元，英伟达“史上最大收购”？英伟达“收编”Groq，“招安”TPU创始人</a>
@@ -1960,8 +2063,8 @@
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">华尔街见闻</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
+                            
+                            <span class="tag tag-time">18:34-20:38</span>
                         </div>
                         <a href="https://wallstreetcn.com/articles/3762016" 
                            class="news-link" target="_blank">英特尔美股盘前大跌5%，报道：英伟达暂缓推进测试英特尔18A工艺</a>
@@ -1977,14 +2080,129 @@
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">华尔街见闻</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
+                            
+                            <span class="tag tag-time">18:34-20:38</span>
                         </div>
                         <a href="https://wallstreetcn.com/articles/3762046" 
                            class="news-link" target="_blank">200亿美元买下Groq，英伟达图啥？</a>
                         <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                         <div class="news-preview">
                             这是一条来自 华尔街见闻 关于 200亿美元买下Groq，英伟达图啥？... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        ai 人工智能
+                                </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">3 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">澎湃新闻</span>
+                            
+                            <span class="tag tag-time">10:11-18:34</span>
+                        </div>
+                        <a href="https://m.thepaper.cn/newsDetail_forward_32154249" 
+                           class="news-link" target="_blank">AI中场时刻①｜摩擦白热化：搅动版权、入口与伦理之争</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 澎湃新闻 关于 AI中场时刻①｜摩擦白热化：搅动版权、入口与伦理之争... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">知乎</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">20:38</span>
+                        </div>
+                        <a href="https://www.zhihu.com/question/1943569117631185654" 
+                           class="news-link" target="_blank">AI 的出现会导致人类的思考能力退化吗？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 知乎 关于 AI 的出现会导致人类的思考能力退化吗？... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">微博</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">20:38</span>
+                        </div>
+                        <a href="https://s.weibo.com/weibo?q=%23%E5%BD%93%E5%B8%8C%E6%9E%97%E5%A8%9C%E4%BE%9D%E9%AB%98%E9%81%87%E8%A7%81AI%23&amp;t=31&amp;band_rank=20&amp;Refer=top" 
+                           class="news-link" target="_blank">当希林娜依高遇见AI</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 微博 关于 当希林娜依高遇见AI... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        华为 鸿蒙 HarmonyOS 任正非
+                                </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">2 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">知乎</span>
+                            
+                            <span class="tag tag-time">00:02</span>
+                        </div>
+                        <a href="https://www.zhihu.com/question/1987197913970017225" 
+                           class="news-link" target="_blank">如何看待华为首款星闪耳机，能否引领音频行业新方向？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 知乎 关于 如何看待华为首款星闪耳机，能否引领音频行业新方向？... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">知乎</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">20:38</span>
+                        </div>
+                        <a href="https://www.zhihu.com/question/1987299839021708915" 
+                           class="news-link" target="_blank">鸿蒙版微信一年迭代超百次，还加入不少独家功能，如何评价鸿蒙版微信这一年的进展？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 知乎 关于 鸿蒙版微信一年迭代超百次，还加入不少独家功能，如何评价鸿蒙版... 的新闻。点击标题查看详情。
                         </div>
                     </div>
                 </div>
@@ -2009,8 +2227,8 @@
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">贴吧</span>
-                            <span class="tag tag-new">NEW</span>
-                            <span class="tag tag-time">18:34</span>
+                            
+                            <span class="tag tag-time">18:34-20:38</span>
                         </div>
                         <a href="https://tieba.baidu.com/hottopic/browse/hottopic?topic_id=28348385&amp;amp;topic_name=%E7%94%BB%E5%B8%88%E5%85%A8%E8%B7%91%E5%85%89%2C%E9%A9%AC%E6%96%AF%E5%85%8BAI%E8%B4%B4%E8%84%B8%E7%9B%97%E5%9B%BE" 
                            class="news-link" target="_blank">画师全跑光,马斯克AI贴脸盗图</a>
@@ -2075,7 +2293,7 @@
                     <div class="news-content">
                         <div class="news-meta">
                             <span class="tag tag-source">抖音</span>
-                            <span class="tag tag-new">NEW</span>
+                            
                             <span class="tag tag-time">18:34</span>
                         </div>
                         <a href="https://www.douyin.com/hot/2347124" 
@@ -2083,38 +2301,6 @@
                         <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                         <div class="news-preview">
                             这是一条来自 抖音 关于 宇宙闪烁请注意爆笑发布会... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
-                </div>
-            </div>
-        
-            <div class="card">
-                <div class="card-header normal" onclick="toggleCard(this)">
-                    <div class="topic-title">
-                        华为 鸿蒙 HarmonyOS 任正非
-                                </div>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span class="topic-count normal">1 条</span>
-                        <span class="expand-icon">▼</span>
-                            </div>
-                </div>
-                <div class="news-list">
-        
-                <div class="news-item">
-                    <div class="news-index">1</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">知乎</span>
-                            
-                            <span class="tag tag-time">00:02</span>
-                        </div>
-                        <a href="https://www.zhihu.com/question/1987197913970017225" 
-                           class="news-link" target="_blank">如何看待华为首款星闪耳机，能否引领音频行业新方向？</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 知乎 关于 如何看待华为首款星闪耳机，能否引领音频行业新方向？... 的新闻。点击标题查看详情。
                         </div>
                     </div>
                 </div>
@@ -2157,6 +2343,38 @@
             <div class="card">
                 <div class="card-header normal" onclick="toggleCard(this)">
                     <div class="topic-title">
+                        chatgpt openai sora
+                                </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">华尔街见闻</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">20:38</span>
+                        </div>
+                        <a href="https://wallstreetcn.com/articles/3762036" 
+                           class="news-link" target="_blank">OpenAI的“广告模式”已初具雏形</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 华尔街见闻 关于 OpenAI的“广告模式”已初具雏形... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
                         iphone ipad mac ios
                                 </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
@@ -2179,38 +2397,6 @@
                         <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                         <div class="news-preview">
                             这是一条来自 微博 关于 iPhone的背面有隐藏按键... 的新闻。点击标题查看详情。
-                        </div>
-                    </div>
-                </div>
-            
-                </div>
-            </div>
-        
-            <div class="card">
-                <div class="card-header normal" onclick="toggleCard(this)">
-                    <div class="topic-title">
-                        ai 人工智能
-                                </div>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span class="topic-count normal">1 条</span>
-                        <span class="expand-icon">▼</span>
-                            </div>
-                </div>
-                <div class="news-list">
-        
-                <div class="news-item">
-                    <div class="news-index">1</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">澎湃新闻</span>
-                            
-                            <span class="tag tag-time">10:11-18:34</span>
-                        </div>
-                        <a href="https://m.thepaper.cn/newsDetail_forward_32154249" 
-                           class="news-link" target="_blank">AI中场时刻①｜摩擦白热化：搅动版权、入口与伦理之争</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                        <div class="news-preview">
-                            这是一条来自 澎湃新闻 关于 AI中场时刻①｜摩擦白热化：搅动版权、入口与伦理之争... 的新闻。点击标题查看详情。
                         </div>
                     </div>
                 </div>
@@ -2256,7 +2442,7 @@
                         ⚡ 本次新增
                             </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <span class="topic-count">19 条</span>
+                        <span class="topic-count">9 条</span>
                         <span class="expand-icon">▼</span>
                             </div>
                         </div>
@@ -2266,14 +2452,14 @@
                         <div class="news-index">1</div>
                         <div class="news-content">
                             <div class="news-meta">
-                                <span class="tag tag-source">华尔街见闻</span>
-                                <span class="rank-indicator high"></span>
+                                <span class="tag tag-source">今日头条</span>
+                                <span class="rank-indicator "></span>
                             </div>
-                            <a href="https://wallstreetcn.com/articles/3762016" 
-                               class="news-link" target="_blank">英特尔美股盘前大跌5%，报道：英伟达暂缓推进测试英特尔18A工艺</a>
+                            <a href="https://www.toutiao.com/trending/7587712017306927131/" 
+                               class="news-link" target="_blank">高市早苗亲信鼓吹“日本应拥核”</a>
                             <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                             <div class="news-preview">
-                                这是一条关于 英特尔美股盘前大跌5%，报道：英伟达暂缓... 的新闻摘要。点击标题可查看完整内容。
+                                这是一条关于 高市早苗亲信鼓吹“日本应拥核”... 的新闻摘要。点击标题可查看完整内容。
                             </div>
                         </div>
                     </div>
@@ -2282,14 +2468,14 @@
                         <div class="news-index">2</div>
                         <div class="news-content">
                             <div class="news-meta">
-                                <span class="tag tag-source">华尔街见闻</span>
-                                <span class="rank-indicator high"></span>
+                                <span class="tag tag-source">今日头条</span>
+                                <span class="rank-indicator "></span>
                             </div>
-                            <a href="https://wallstreetcn.com/articles/3762046" 
-                               class="news-link" target="_blank">200亿美元买下Groq，英伟达图啥？</a>
+                            <a href="https://www.toutiao.com/trending/7586627294103732230/" 
+                               class="news-link" target="_blank">当美国人被一条“斩杀线”击中</a>
                             <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                             <div class="news-preview">
-                                这是一条关于 200亿美元买下Groq，英伟达图啥？... 的新闻摘要。点击标题可查看完整内容。
+                                这是一条关于 当美国人被一条“斩杀线”击中... 的新闻摘要。点击标题可查看完整内容。
                             </div>
                         </div>
                     </div>
@@ -2298,14 +2484,14 @@
                         <div class="news-index">3</div>
                         <div class="news-content">
                             <div class="news-meta">
-                                <span class="tag tag-source">贴吧</span>
-                                <span class="rank-indicator "></span>
+                                <span class="tag tag-source">华尔街见闻</span>
+                                <span class="rank-indicator high"></span>
                             </div>
-                            <a href="https://tieba.baidu.com/hottopic/browse/hottopic?topic_id=28348385&amp;amp;topic_name=%E7%94%BB%E5%B8%88%E5%85%A8%E8%B7%91%E5%85%89%2C%E9%A9%AC%E6%96%AF%E5%85%8BAI%E8%B4%B4%E8%84%B8%E7%9B%97%E5%9B%BE" 
-                               class="news-link" target="_blank">画师全跑光,马斯克AI贴脸盗图</a>
+                            <a href="https://wallstreetcn.com/articles/3762036" 
+                               class="news-link" target="_blank">OpenAI的“广告模式”已初具雏形</a>
                             <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                             <div class="news-preview">
-                                这是一条关于 画师全跑光,马斯克AI贴脸盗图... 的新闻摘要。点击标题可查看完整内容。
+                                这是一条关于 OpenAI的“广告模式”已初具雏形... 的新闻摘要。点击标题可查看完整内容。
                             </div>
                         </div>
                     </div>
@@ -2314,14 +2500,14 @@
                         <div class="news-index">4</div>
                         <div class="news-content">
                             <div class="news-meta">
-                                <span class="tag tag-source">抖音</span>
+                                <span class="tag tag-source">澎湃新闻</span>
                                 <span class="rank-indicator "></span>
                             </div>
-                            <a href="https://www.douyin.com/hot/2346980" 
-                               class="news-link" target="_blank">欧盟警告反制美国</a>
+                            <a href="https://m.thepaper.cn/newsDetail_forward_32247365" 
+                               class="news-link" target="_blank">美发布2025年《中国军力报告》：赶工迹象、矛盾和臆测炒作</a>
                             <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                             <div class="news-preview">
-                                这是一条关于 欧盟警告反制美国... 的新闻摘要。点击标题可查看完整内容。
+                                这是一条关于 美发布2025年《中国军力报告》：赶工迹... 的新闻摘要。点击标题可查看完整内容。
                             </div>
                         </div>
                     </div>
@@ -2330,14 +2516,14 @@
                         <div class="news-index">5</div>
                         <div class="news-content">
                             <div class="news-meta">
-                                <span class="tag tag-source">抖音</span>
-                                <span class="rank-indicator "></span>
+                                <span class="tag tag-source">知乎</span>
+                                <span class="rank-indicator high"></span>
                             </div>
-                            <a href="https://www.douyin.com/hot/2346977" 
-                               class="news-link" target="_blank">哥大博士预言人会爱上机器人</a>
+                            <a href="https://www.zhihu.com/question/1943569117631185654" 
+                               class="news-link" target="_blank">AI 的出现会导致人类的思考能力退化吗？</a>
                             <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                             <div class="news-preview">
-                                这是一条关于 哥大博士预言人会爱上机器人... 的新闻摘要。点击标题可查看完整内容。
+                                这是一条关于 AI 的出现会导致人类的思考能力退化吗？... 的新闻摘要。点击标题可查看完整内容。
                             </div>
                         </div>
                     </div>
@@ -2346,14 +2532,14 @@
                         <div class="news-index">6</div>
                         <div class="news-content">
                             <div class="news-meta">
-                                <span class="tag tag-source">抖音</span>
+                                <span class="tag tag-source">知乎</span>
                                 <span class="rank-indicator "></span>
                             </div>
-                            <a href="https://www.douyin.com/hot/2347124" 
-                               class="news-link" target="_blank">宇宙闪烁请注意爆笑发布会</a>
+                            <a href="https://www.zhihu.com/question/1987299839021708915" 
+                               class="news-link" target="_blank">鸿蒙版微信一年迭代超百次，还加入不少独家功能，如何评价鸿蒙版微信这一年的进展？</a>
                             <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                             <div class="news-preview">
-                                这是一条关于 宇宙闪烁请注意爆笑发布会... 的新闻摘要。点击标题可查看完整内容。
+                                这是一条关于 鸿蒙版微信一年迭代超百次，还加入不少独家... 的新闻摘要。点击标题可查看完整内容。
                             </div>
                         </div>
                     </div>
@@ -2362,14 +2548,14 @@
                         <div class="news-index">7</div>
                         <div class="news-content">
                             <div class="news-meta">
-                                <span class="tag tag-source">抖音</span>
-                                <span class="rank-indicator "></span>
+                                <span class="tag tag-source">财联社热门</span>
+                                <span class="rank-indicator high"></span>
                             </div>
-                            <a href="https://www.douyin.com/hot/2346875" 
-                               class="news-link" target="_blank">核爆受害者团体抗议日本拥核言论</a>
+                            <a href="https://www.cls.cn/detail/2240212" 
+                               class="news-link" target="_blank">年终巨献：机器人述职报告</a>
                             <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                             <div class="news-preview">
-                                这是一条关于 核爆受害者团体抗议日本拥核言论... 的新闻摘要。点击标题可查看完整内容。
+                                这是一条关于 年终巨献：机器人述职报告... 的新闻摘要。点击标题可查看完整内容。
                             </div>
                         </div>
                     </div>
@@ -2378,14 +2564,14 @@
                         <div class="news-index">8</div>
                         <div class="news-content">
                             <div class="news-meta">
-                                <span class="tag tag-source">今日头条</span>
-                                <span class="rank-indicator "></span>
+                                <span class="tag tag-source">微博</span>
+                                <span class="rank-indicator high"></span>
                             </div>
-                            <a href="https://www.toutiao.com/trending/7587690320272297478/" 
-                               class="news-link" target="_blank">业内：明年或是中国股市配置价值元年</a>
+                            <a href="https://s.weibo.com/weibo?q=%23%E8%BF%99%E4%B8%AA%E8%8A%82%E7%BE%8E%E5%9B%BD%E4%BA%BA%E8%BF%87%E5%BE%97%E4%B8%8D%E5%A4%AA%E8%88%92%E5%BF%83%23&amp;t=31&amp;band_rank=9&amp;Refer=top" 
+                               class="news-link" target="_blank">这个节美国人过得不太舒心</a>
                             <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                             <div class="news-preview">
-                                这是一条关于 业内：明年或是中国股市配置价值元年... 的新闻摘要。点击标题可查看完整内容。
+                                这是一条关于 这个节美国人过得不太舒心... 的新闻摘要。点击标题可查看完整内容。
                             </div>
                         </div>
                     </div>
@@ -2394,174 +2580,14 @@
                         <div class="news-index">9</div>
                         <div class="news-content">
                             <div class="news-meta">
-                                <span class="tag tag-source">今日头条</span>
-                                <span class="rank-indicator "></span>
-                            </div>
-                            <a href="https://www.toutiao.com/trending/7586689817736986662/" 
-                               class="news-link" target="_blank">国防部：日本应真心道歉认罪赎罪</a>
-                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                            <div class="news-preview">
-                                这是一条关于 国防部：日本应真心道歉认罪赎罪... 的新闻摘要。点击标题可查看完整内容。
-                            </div>
-                        </div>
-                    </div>
-                
-                    <div class="news-item">
-                        <div class="news-index">10</div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="tag tag-source">今日头条</span>
-                                <span class="rank-indicator "></span>
-                            </div>
-                            <a href="https://www.toutiao.com/trending/7587632454770442259/" 
-                               class="news-link" target="_blank">男子为给女友买玉石坐硬座到胖东来</a>
-                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                            <div class="news-preview">
-                                这是一条关于 男子为给女友买玉石坐硬座到胖东来... 的新闻摘要。点击标题可查看完整内容。
-                            </div>
-                        </div>
-                    </div>
-                
-                    <div class="news-item">
-                        <div class="news-index">11</div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="tag tag-source">知乎</span>
-                                <span class="rank-indicator high"></span>
-                            </div>
-                            <a href="https://www.zhihu.com/question/1987426605316924152" 
-                               class="news-link" target="_blank">美国宣布未来 18 个月不对中国芯片加征额外关税，会对芯片市场带来怎样的影响？</a>
-                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                            <div class="news-preview">
-                                这是一条关于 美国宣布未来 18 个月不对中国芯片加征... 的新闻摘要。点击标题可查看完整内容。
-                            </div>
-                        </div>
-                    </div>
-                
-                    <div class="news-item">
-                        <div class="news-index">12</div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="tag tag-source">百度热搜</span>
-                                <span class="rank-indicator high"></span>
-                            </div>
-                            <a href="https://www.baidu.com/s?wd=%E4%BA%AC%E4%B8%9C%E5%B9%B4%E7%BB%88%E5%A5%96%EF%BC%9A%E9%87%87%E9%94%80%E5%B9%B3%E5%9D%8725%E8%96%AA+%E4%B8%8A%E4%B8%8D%E5%B0%81%E9%A1%B6" 
-                               class="news-link" target="_blank">京东年终奖：采销平均25薪 上不封顶</a>
-                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                            <div class="news-preview">
-                                这是一条关于 京东年终奖：采销平均25薪 上不封顶... 的新闻摘要。点击标题可查看完整内容。
-                            </div>
-                        </div>
-                    </div>
-                
-                    <div class="news-item">
-                        <div class="news-index">13</div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="tag tag-source">百度热搜</span>
-                                <span class="rank-indicator "></span>
-                            </div>
-                            <a href="https://www.baidu.com/s?wd=%E4%BF%9D%E6%97%B6%E6%8D%B7%E4%B8%AD%E5%9B%BD%E5%9B%9E%E5%BA%94%E9%83%91%E5%B7%9E%E4%B8%80%E9%97%A8%E5%BA%97%E7%96%91%E4%BC%BC%E8%B7%91%E8%B7%AF" 
-                               class="news-link" target="_blank">保时捷中国回应郑州一门店疑似跑路</a>
-                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                            <div class="news-preview">
-                                这是一条关于 保时捷中国回应郑州一门店疑似跑路... 的新闻摘要。点击标题可查看完整内容。
-                            </div>
-                        </div>
-                    </div>
-                
-                    <div class="news-item">
-                        <div class="news-index">14</div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="tag tag-source">财联社热门</span>
-                                <span class="rank-indicator high"></span>
-                            </div>
-                            <a href="https://www.cls.cn/detail/2240089" 
-                               class="news-link" target="_blank">【数据看盘】7.39亿元资金抢筹金风科技 多家实力游资集体出逃海南发展</a>
-                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                            <div class="news-preview">
-                                这是一条关于 【数据看盘】7.39亿元资金抢筹金风科技... 的新闻摘要。点击标题可查看完整内容。
-                            </div>
-                        </div>
-                    </div>
-                
-                    <div class="news-item">
-                        <div class="news-index">15</div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="tag tag-source">财联社热门</span>
-                                <span class="rank-indicator high"></span>
-                            </div>
-                            <a href="https://www.cls.cn/detail/2240066" 
-                               class="news-link" target="_blank">【焦点复盘】创业板指探底回升收获5连涨，全市场超3700股飘红，机器人概念现批量涨停</a>
-                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                            <div class="news-preview">
-                                这是一条关于 【焦点复盘】创业板指探底回升收获5连涨，... 的新闻摘要。点击标题可查看完整内容。
-                            </div>
-                        </div>
-                    </div>
-                
-                    <div class="news-item">
-                        <div class="news-index">16</div>
-                        <div class="news-content">
-                            <div class="news-meta">
                                 <span class="tag tag-source">微博</span>
-                                <span class="rank-indicator high"></span>
+                                <span class="rank-indicator "></span>
                             </div>
-                            <a href="https://s.weibo.com/weibo?q=%23%E5%88%98%E5%BC%BA%E4%B8%9C%E5%8F%91%E5%A5%96%E9%87%91%E6%9C%89%E5%91%98%E5%B7%A5%E5%A4%9A%E6%8B%BF1%E5%B9%B4%E5%B7%A5%E8%B5%84%23&amp;t=31&amp;band_rank=9&amp;Refer=top" 
-                               class="news-link" target="_blank">刘强东发奖金有员工多拿1年工资</a>
+                            <a href="https://s.weibo.com/weibo?q=%23%E5%BD%93%E5%B8%8C%E6%9E%97%E5%A8%9C%E4%BE%9D%E9%AB%98%E9%81%87%E8%A7%81AI%23&amp;t=31&amp;band_rank=20&amp;Refer=top" 
+                               class="news-link" target="_blank">当希林娜依高遇见AI</a>
                             <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
                             <div class="news-preview">
-                                这是一条关于 刘强东发奖金有员工多拿1年工资... 的新闻摘要。点击标题可查看完整内容。
-                            </div>
-                        </div>
-                    </div>
-                
-                    <div class="news-item">
-                        <div class="news-index">17</div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="tag tag-source">凤凰网</span>
-                                <span class="rank-indicator top"></span>
-                            </div>
-                            <a href="https://news.ifeng.com/c/8pNJR35BTlS" 
-                               class="news-link" target="_blank">自己菜竟怪别人打压，“中方阻碍美国自主化稀土加工产业”</a>
-                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                            <div class="news-preview">
-                                这是一条关于 自己菜竟怪别人打压，“中方阻碍美国自主化... 的新闻摘要。点击标题可查看完整内容。
-                            </div>
-                        </div>
-                    </div>
-                
-                    <div class="news-item">
-                        <div class="news-index">18</div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="tag tag-source">凤凰网</span>
-                                <span class="rank-indicator high"></span>
-                            </div>
-                            <a href="https://news.ifeng.com/c/8pMwqjZ8H6f" 
-                               class="news-link" target="_blank">扎哈罗娃生日获普京颁发勋章：在中国长大，能讲一口流利北京话</a>
-                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                            <div class="news-preview">
-                                这是一条关于 扎哈罗娃生日获普京颁发勋章：在中国长大，... 的新闻摘要。点击标题可查看完整内容。
-                            </div>
-                        </div>
-                    </div>
-                
-                    <div class="news-item">
-                        <div class="news-index">19</div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="tag tag-source">凤凰网</span>
-                                <span class="rank-indicator high"></span>
-                            </div>
-                            <a href="https://news.ifeng.com/c/8pN2aQOWl4l" 
-                               class="news-link" target="_blank">反转？美特使最新表态：美国无意征服</a>
-                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
-                            <div class="news-preview">
-                                这是一条关于 反转？美特使最新表态：美国无意征服... 的新闻摘要。点击标题可查看完整内容。
+                                这是一条关于 当希林娜依高遇见AI... 的新闻摘要。点击标题可查看完整内容。
                             </div>
                         </div>
                     </div>
@@ -2573,7 +2599,7 @@
 
             <div class="footer">
                 <p>
-                    生成于 2025-12-25 18:34:42 · 
+                    生成于 2025-12-25 20:38:27 · 
                     <a href="https://github.com/sansan0/TrendRadar" target="_blank">TrendRadar</a> 开源项目
                 </p>
                 <p class="update-info">发现新版本 4.0.3</p>
@@ -2603,10 +2629,10 @@
                 new Chart(trendCtx, {
                     type: 'bar',
                     data: {
-                        labels: ['美国 日本 ', '国产 中国', '机器人', '科技', '胖东来 于东', '京东 刘强东', '英伟达 NV', '特斯拉 马斯'],
+                        labels: ['美国 日本 ', '国产 中国', '机器人', '科技', '胖东来 于东', '京东 刘强东', '英伟达 NV', 'ai 人工智'],
                         datasets: [{
                             label: '新闻数量',
-                            data: [37, 29, 4, 4, 3, 3, 3, 2],
+                            data: [40, 30, 5, 4, 3, 3, 3, 3],
                             backgroundColor: 'rgba(59, 130, 246, 0.6)',
                             borderColor: 'rgba(59, 130, 246, 1)',
                             borderWidth: 2,
@@ -2646,7 +2672,7 @@
                     data: {
                         labels: ['知乎', '凤凰网', 'bilibili 热搜', '贴吧', '微博', '百度热搜'],
                         datasets: [{
-                            data: [9, 14, 7, 5, 8, 8],
+                            data: [11, 14, 7, 5, 10, 8],
                             backgroundColor: [
                                 'rgba(59, 130, 246, 0.8)',
                                 'rgba(16, 185, 129, 0.8)',
@@ -2695,7 +2721,7 @@
                     });
 
                     const link = document.createElement('a');
-                    link.download = 'TrendRadar_Report_20251225_1834.png';
+                    link.download = 'TrendRadar_Report_20251225_2038.png';
                     link.href = canvas.toDataURL('image/png');
                     link.click();
                     
