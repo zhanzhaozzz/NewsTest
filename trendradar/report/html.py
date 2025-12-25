@@ -214,6 +214,9 @@ def render_html_content(
                 border-radius: 12px;
                 padding: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.1);
+                height: 300px;
+                display: flex;
+                flex-direction: column;
             }}
 
             .chart-title {{
@@ -221,6 +224,17 @@ def render_html_content(
                 font-weight: 600;
                 margin-bottom: 12px;
                 opacity: 0.8;
+                flex-shrink: 0;
+            }}
+            
+            .chart-wrapper {{
+                flex: 1;
+                position: relative;
+                min-height: 0;
+            }}
+            
+            .chart-wrapper canvas {{
+                max-height: 100%;
             }}
 
             /* --- Masonry Layout --- */
@@ -527,11 +541,15 @@ def render_html_content(
                 <div class="charts-section">
                     <div class="chart-container">
                         <div class="chart-title">📊 热度趋势</div>
-                        <canvas id="trendChart" height="80"></canvas>
+                        <div class="chart-wrapper">
+                            <canvas id="trendChart"></canvas>
+                        </div>
                     </div>
                     <div class="chart-container">
                         <div class="chart-title">📱 平台分布</div>
-                        <canvas id="platformChart" height="120"></canvas>
+                        <div class="chart-wrapper">
+                            <canvas id="platformChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
