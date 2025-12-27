@@ -619,7 +619,7 @@ def render_html_content(
                         </div>
         """
 
-    html += """
+        html += """
             <!-- Content Grid -->
             <div class="masonry-grid">
     """
@@ -632,7 +632,7 @@ def render_html_content(
                 <div class="card-header new-section" onclick="toggleCard(this)">
                     <div class="topic-title">
                         ⚡ 本次新增
-                            </div>
+                        </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <span class="topic-count">{report_data['total_new_count']} 条</span>
                         <span class="expand-icon">▼</span>
@@ -666,9 +666,9 @@ def render_html_content(
                             </div>
                             <a href="{html_escape(url) if url else 'javascript:void(0)'}" 
                                class="news-link" target="_blank">{title}</a>
-                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                            <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
                             <div class="news-preview">
-                                这是一条关于 {title[:20]}... 的新闻摘要。点击标题可查看完整内容。
+                                📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
                             </div>
                         </div>
                     </div>
@@ -711,12 +711,12 @@ def render_html_content(
                     <div class="topic-title">
                         <div class="topic-main">{main_title}</div>
                         {f'<div class="topic-keywords">{keywords}</div>' if keywords else ''}
-                    </div>
+                            </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <span class="topic-count {count_class}">{count} 条</span>
                         <span class="expand-icon">▼</span>
                             </div>
-                </div>
+                        </div>
                 <div class="news-list">
         """
         
@@ -737,7 +737,8 @@ def render_html_content(
             
             time_display = title_data.get("time_display", "")
             if time_display:
-                time_display = time_display.replace(" ~ ", "-").replace("[", "").replace("]", "")
+                # 清理时间显示格式：[10:49 ~ 19:16] -> 10:49-19:16
+                time_display = time_display.replace("[", "").replace("]", "").replace(" ~ ", "-").strip()
             
             stats_section_html += f"""
                 <div class="news-item">
@@ -750,17 +751,17 @@ def render_html_content(
                         </div>
                         <a href="{html_escape(url) if url else 'javascript:void(0)'}" 
                            class="news-link" target="_blank">{title}</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
                         <div class="news-preview">
-                            这是一条来自 {source} 关于 {title[:30]}... 的新闻。点击标题查看详情。
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
                         </div>
                     </div>
                 </div>
             """
             
         stats_section_html += """
-                </div>
-            </div>
+                                </div>
+                            </div>
         """
 
     # 组合内容
@@ -770,23 +771,52 @@ def render_html_content(
         html += stats_section_html + new_section_html
 
     # 准备图表数据
-    topic_labels = [stat["word"][:6] for stat in report_data["stats"][:8]]  # 最多8个
-    topic_counts = [stat["count"] for stat in report_data["stats"][:8]]
+    topic_labels = []
+    topic_counts = []
+    for stat in report_data["stats"][:8]:
+        word = stat["word"]
+        # 提取主标题（如果有===分隔符）
+        if "===" in word:
+            parts = word.split("===")
+            if len(parts) >= 2:
+                word = parts[1].strip()
+        # 截取长度
+        if len(word) > 8:
+            word = word[:8] + "..."
+        topic_labels.append(word)
+        topic_counts.append(stat["count"])
     
     platform_labels = list(platform_stats.keys())[:6]  # 最多6个平台
     platform_counts = [platform_stats[k] for k in platform_labels]
 
-    html += f"""
+    # 生成footer
+    footer_html = f"""
             </div> <!-- End Masonry Grid -->
 
             <div class="footer">
                 <p>
                     生成于 {now.strftime("%Y-%m-%d %H:%M:%S")}
                 </p>
-                {f'<p class="update-info">发现新版本 {update_info["remote_version"]}</p>' if update_info else ''}
+    """
+    if update_info:
+        footer_html += f"""
+                <p class="update-info">发现新版本 {update_info["remote_version"]}</p>
+    """
+    footer_html += """
             </div>
         </div>
-
+    """
+    
+    html += footer_html
+    
+    # 转换为JSON格式
+    import json
+    topic_labels_json = json.dumps(topic_labels, ensure_ascii=False)
+    topic_counts_json = json.dumps(topic_counts)
+    platform_labels_json = json.dumps(platform_labels, ensure_ascii=False)
+    platform_counts_json = json.dumps(platform_counts)
+    
+    html += f"""
         <script>
             // 卡片展开/收起
             function toggleCard(header) {{
@@ -794,13 +824,13 @@ def render_html_content(
                 card.classList.toggle('collapsed');
             }}
 
-            // 新闻摘要展开/收起
+            // 新闻说明展开/收起
             function togglePreview(btn) {{
                 const newsItem = btn.closest('.news-item');
                 newsItem.classList.toggle('show-preview');
                 btn.textContent = newsItem.classList.contains('show-preview') 
-                    ? '收起摘要 ▲' 
-                    : '查看摘要 ▼';
+                    ? '收起 ▲' 
+                    : '💡 说明';
             }}
 
             // 初始化图表
@@ -818,10 +848,10 @@ def render_html_content(
                 new Chart(trendCtx, {{
                     type: 'bar',
                     data: {{
-                        labels: {topic_labels},
+                        labels: {topic_labels_json},
                         datasets: [{{
                             label: '新闻数量',
-                            data: {topic_counts},
+                            data: {topic_counts_json},
                             backgroundColor: 'rgba(59, 130, 246, 0.6)',
                             borderColor: 'rgba(59, 130, 246, 1)',
                             borderWidth: 2,
@@ -843,11 +873,19 @@ def render_html_content(
                         scales: {{
                             y: {{
                                 beginAtZero: true,
-                                ticks: {{ color: 'rgba(255,255,255,0.6)' }},
+                                ticks: {{ 
+                                    color: 'rgba(255,255,255,0.6)',
+                                    precision: 0
+                                }},
                                 grid: {{ color: 'rgba(255,255,255,0.1)' }}
                             }},
                             x: {{
-                                ticks: {{ color: 'rgba(255,255,255,0.6)' }},
+                                ticks: {{ 
+                                    color: 'rgba(255,255,255,0.6)',
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    autoSkip: false
+                                }},
                                 grid: {{ display: false }}
                             }}
                         }}
@@ -859,9 +897,9 @@ def render_html_content(
                 new Chart(platformCtx, {{
                     type: 'doughnut',
                     data: {{
-                        labels: {platform_labels},
+                        labels: {platform_labels_json},
                         datasets: [{{
-                            data: {platform_counts},
+                            data: {platform_counts_json},
                             backgroundColor: [
                                 'rgba(59, 130, 246, 0.8)',
                                 'rgba(16, 185, 129, 0.8)',
