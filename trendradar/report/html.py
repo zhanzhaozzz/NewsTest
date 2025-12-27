@@ -258,26 +258,6 @@ def render_html_content(
                     grid-template-columns: 1fr;
                 }}
             }}
-            
-            /* 新增卡片放在右上角 */
-            .new-section-card {{
-                grid-column: 3;
-                grid-row: 1;
-            }}
-            
-            @media (max-width: 1200px) {{
-                .new-section-card {{
-                    grid-column: 2;
-                    grid-row: 1;
-                }}
-            }}
-            
-            @media (max-width: 768px) {{
-                .new-section-card {{
-                    grid-column: 1;
-                    grid-row: 1;
-                }}
-            }}
 
             .card {{
                 background: var(--card-bg);
@@ -600,7 +580,7 @@ def render_html_content(
                     <div class="brand-section">
                         <h1>TrendRadar</h1>
                         <p>全网热点聚合分析报告</p>
-                </div>
+                    </div>
                     <div class="action-buttons" data-html2canvas-ignore>
                         <div class="btn" onclick="saveAsImage()">保存图片</div>
                         <div class="btn" onclick="saveAsMultipleImages()">分段保存</div>
@@ -654,7 +634,7 @@ def render_html_content(
                         </div>
         """
 
-        html += """
+    html += """
             <!-- Content Grid -->
             <div class="masonry-grid">
     """
@@ -667,7 +647,7 @@ def render_html_content(
                 <div class="card-header new-section" onclick="toggleCard(this)">
                     <div class="topic-title">
                         ⚡ 本次新增
-                        </div>
+                            </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <span class="topic-count">{report_data['total_new_count']} 条</span>
                         <span class="expand-icon">▼</span>
@@ -711,13 +691,13 @@ def render_html_content(
                 idx_counter += 1
                 
         new_section_html += """
-                </div>
-            </div>
+                                </div>
+                            </div>
         """
 
     # --- 2. 热点词汇卡片 ---
     stats_section_html = ""
-    for stat in report_data["stats"]:
+    for idx, stat in enumerate(report_data["stats"]):
         word = html_escape(stat["word"])
         count = stat["count"]
         
@@ -746,7 +726,7 @@ def render_html_content(
                     <div class="topic-title">
                         <div class="topic-main">{main_title}</div>
                         {f'<div class="topic-keywords">{keywords}</div>' if keywords else ''}
-                            </div>
+            </div>
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <span class="topic-count {count_class}">{count} 条</span>
                         <span class="expand-icon">▼</span>
@@ -783,27 +763,31 @@ def render_html_content(
                             <span class="tag tag-source">{source}</span>
                             {f'<span class="tag tag-new">NEW</span>' if is_new else ''}
                             {f'<span class="tag tag-time">{html_escape(time_display)}</span>' if time_display else ''}
-                        </div>
+                </div>
                         <a href="{html_escape(url) if url else 'javascript:void(0)'}" 
                            class="news-link" target="_blank">{title}</a>
                         <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
                         <div class="news-preview">
                             📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
-                        </div>
-                    </div>
+            </div>
+        </div>
                 </div>
             """
             
         stats_section_html += """
-                                </div>
-                            </div>
+                </div>
+            </div>
         """
+        
+        # 在第2个卡片后插入新增卡片（3列布局时会在第一行第3列）
+        if idx == 1 and new_section_html:
+            stats_section_html += new_section_html
+            new_section_html = ""  # 标记已添加
 
-    # 组合内容
-    if reverse_content_order:
-        html += new_section_html + stats_section_html
-    else:
-        html += stats_section_html + new_section_html
+    # 如果新增卡片还没添加（stats少于2个），添加到最后
+    html += stats_section_html
+    if new_section_html:
+        html += new_section_html
 
     # 准备图表数据
     topic_labels = []
@@ -978,14 +962,14 @@ def render_html_content(
                     const canvas = await html2canvas(container, {{
                         scale: 2,
                         backgroundColor: '#f0f2f5',
-                        useCORS: true,
+                            useCORS: true,
                         logging: false
                     }});
 
-                    const link = document.createElement('a');
+                        const link = document.createElement('a');
                     link.download = 'TrendRadar_Report_{now.strftime("%Y%m%d_%H%M")}.png';
                     link.href = canvas.toDataURL('image/png');
-                    link.click();
+                        link.click();
                     
                     btn.textContent = '已保存';
                 }} catch (e) {{
