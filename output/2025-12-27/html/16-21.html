@@ -1,0 +1,1979 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TrendRadar 热点聚合 - 12-27</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <style>
+            :root {
+                --bg-color: #f0f2f5;
+                --card-bg: #ffffff;
+                --text-main: #1f2937;
+                --text-sub: #6b7280;
+                --accent-color: #3b82f6;
+                --danger-color: #ef4444;
+                --success-color: #10b981;
+                --warning-color: #f59e0b;
+                --border-radius: 12px;
+                --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                --header-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            }
+
+            * { box-sizing: border-box; }
+            
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                margin: 0;
+                padding: 24px;
+                background-color: var(--bg-color);
+                color: var(--text-main);
+                line-height: 1.5;
+            }
+
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+
+            /* --- Header Area --- */
+            .dashboard-header {
+                background: var(--header-gradient);
+                color: white;
+                border-radius: 16px;
+                padding: 32px;
+                margin-bottom: 32px;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .header-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 32px;
+                position: relative;
+                z-index: 2;
+            }
+
+            .brand-section h1 {
+                margin: 0;
+                font-size: 28px;
+                font-weight: 800;
+                letter-spacing: -0.5px;
+                background: linear-gradient(to right, #60a5fa, #a78bfa);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                display: none;
+            }
+
+            .brand-section p {
+                margin: 0;
+                opacity: 0.9;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .action-buttons {
+                display: flex;
+                gap: 12px;
+            }
+
+            .btn {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 600;
+                transition: all 0.2s;
+                backdrop-filter: blur(4px);
+            }
+
+            .btn:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-1px);
+            }
+
+            .stats-row {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 24px;
+                position: relative;
+                z-index: 2;
+                margin-bottom: 24px;
+            }
+
+            .stat-card {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                padding: 16px 20px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .stat-label {
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                opacity: 0.6;
+                margin-bottom: 4px;
+                display: block;
+            }
+
+            .stat-value {
+                font-size: 28px;
+                font-weight: 700;
+                letter-spacing: -1px;
+            }
+            
+            .stat-sub {
+                font-size: 12px;
+                opacity: 0.8;
+                margin-left: 4px;
+                font-weight: 400;
+            }
+
+            /* 数据可视化区域 */
+            .charts-section {
+                display: grid;
+                grid-template-columns: 2fr 1fr;
+                gap: 20px;
+                margin-top: 24px;
+            }
+
+            .chart-container {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                padding: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                height: 300px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .chart-title {
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 12px;
+                opacity: 0.8;
+                flex-shrink: 0;
+            }
+            
+            .chart-wrapper {
+                flex: 1;
+                position: relative;
+                min-height: 0;
+            }
+            
+            .chart-wrapper canvas {
+                max-height: 100%;
+            }
+
+            /* --- Grid Layout --- */
+            .masonry-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                gap: 24px;
+            }
+            
+            @media (max-width: 768px) {
+                .masonry-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .card {
+                background: var(--card-bg);
+                border-radius: var(--border-radius);
+                box-shadow: var(--card-shadow);
+                overflow: hidden;
+                transition: transform 0.2s, box-shadow 0.2s;
+                border: 1px solid rgba(0,0,0,0.03);
+                display: flex;
+                flex-direction: column;
+            }
+
+            .card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Card Header - 可点击展开/收起 */
+            .card-header {
+                padding: 16px 20px;
+                border-bottom: 1px solid #f3f4f6;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: #ffffff;
+                position: relative;
+                cursor: pointer;
+                user-select: none;
+            }
+            
+            .card-header:hover {
+                background: #f9fafb;
+            }
+            
+            .card-header::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 4px;
+                background: var(--accent-color);
+            }
+            
+            .card-header.hot::before { background: var(--danger-color); }
+            .card-header.warm::before { background: var(--warning-color); }
+            .card-header.new-section::before { background: var(--success-color); }
+
+            .topic-title {
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--text-main);
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            
+            .topic-main {
+                font-size: 18px;
+                font-weight: 700;
+            }
+            
+            .topic-keywords {
+                font-size: 11px;
+                font-weight: 400;
+                color: #9ca3af;
+                line-height: 1.4;
+            }
+
+            .topic-count {
+                background: #f3f4f6;
+                color: var(--text-sub);
+                font-size: 12px;
+                font-weight: 600;
+                padding: 4px 10px;
+                border-radius: 20px;
+            }
+            
+            .topic-count.hot {
+                background: #fee2e2;
+                color: #ef4444;
+            }
+
+            .expand-icon {
+                font-size: 20px;
+                transition: transform 0.3s;
+                color: #9ca3af;
+            }
+
+            .card.collapsed .expand-icon {
+                transform: rotate(-90deg);
+            }
+
+            /* News List - 可展开收起 */
+            .news-list {
+                padding: 8px 0;
+                max-height: 600px;
+                overflow-y: auto;
+                overflow-x: hidden;
+                transition: max-height 0.3s ease-out;
+            }
+
+            /* 折叠状态：只显示前3条新闻 */
+            .card.collapsed .news-list {
+                max-height: none;
+                overflow: visible;
+            }
+            
+            .card.collapsed .news-item {
+                display: flex;
+            }
+            
+            .card.collapsed .news-item:nth-child(n+4) {
+                display: none;
+            }
+            
+            /* 折叠提示：在新闻列表底部显示 */
+            .card.collapsed .news-list::after {
+                content: '点击标题查看全部';
+                display: block;
+                text-align: center;
+                padding: 12px;
+                font-size: 12px;
+                color: #9ca3af;
+                font-style: italic;
+            }
+            
+            /* 滚动条样式 */
+            .news-list::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            .news-list::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 3px;
+            }
+            
+            .news-list::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 3px;
+            }
+            
+            .news-list::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
+            }
+
+            .news-item {
+                padding: 12px 20px;
+                border-bottom: 1px solid #f9fafb;
+                display: flex;
+                gap: 12px;
+                align-items: flex-start;
+                transition: background 0.2s;
+            }
+
+            .news-item:last-child {
+                border-bottom: none;
+            }
+            
+            .news-item:hover {
+                background-color: #f9fafb;
+            }
+
+            .news-index {
+                color: #9ca3af;
+                font-size: 14px;
+                font-weight: 500;
+                min-width: 20px;
+                padding-top: 2px;
+            }
+
+            .news-content {
+                flex: 1;
+            }
+
+            .news-meta {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-bottom: 4px;
+                font-size: 11px;
+            }
+
+            .tag {
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-weight: 600;
+            }
+            
+            .tag-source {
+                background: #eff6ff;
+                color: #3b82f6;
+            }
+            
+            .tag-new {
+                background: #ecfdf5;
+                color: #059669;
+                text-transform: uppercase;
+            }
+            
+            .tag-time {
+                color: #9ca3af;
+            }
+
+            .news-link {
+                color: var(--text-main);
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 500;
+                line-height: 1.4;
+                display: block;
+                transition: color 0.2s;
+            }
+
+            .news-link:hover {
+                color: var(--accent-color);
+            }
+            
+            /* 新闻摘要预览 */
+            .news-preview {
+                margin-top: 8px;
+                padding: 8px 12px;
+                background: #f9fafb;
+                border-left: 3px solid #e5e7eb;
+                font-size: 13px;
+                color: #6b7280;
+                line-height: 1.5;
+                border-radius: 4px;
+                display: none;
+            }
+
+            .news-item.show-preview .news-preview {
+                display: block;
+            }
+
+            .preview-toggle {
+                font-size: 11px;
+                color: #3b82f6;
+                cursor: pointer;
+                margin-top: 4px;
+                display: inline-block;
+            }
+
+            .preview-toggle:hover {
+                text-decoration: underline;
+            }
+            
+            .rank-indicator {
+                display: inline-block;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background-color: #d1d5db;
+                margin-right: 4px;
+            }
+            
+            .rank-indicator.top { background-color: #ef4444; }
+            .rank-indicator.high { background-color: #f97316; }
+
+            /* New Section Special Style */
+            .new-section-card .card-header {
+                background: #ecfdf5;
+                border-bottom: 1px solid #d1fae5;
+            }
+            
+            .new-section-card .topic-title {
+                color: #065f46;
+            }
+
+            /* Error Section */
+            .error-card {
+                background: #fff5f5;
+                border: 1px solid #feb2b2;
+                padding: 16px;
+                margin-bottom: 24px;
+                border-radius: 8px;
+                color: #c53030;
+            }
+
+            /* Footer */
+            .footer {
+                text-align: center;
+                padding: 40px 0;
+                color: var(--text-sub);
+                font-size: 13px;
+            }
+
+            .footer a {
+                color: var(--text-sub);
+                text-decoration: none;
+                border-bottom: 1px dotted #9ca3af;
+            }
+
+            @media (max-width: 600px) {
+                body { padding: 12px; }
+                .dashboard-header { padding: 20px; border-radius: 12px; }
+                .stats-row { grid-template-columns: 1fr 1fr; gap: 16px; }
+                .header-top { flex-direction: column; gap: 16px; }
+                .action-buttons { width: 100%; }
+                .btn { flex: 1; text-align: center; }
+                .charts-section { grid-template-columns: 1fr; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container" id="capture-container">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <div class="header-top">
+                    <div class="brand-section">
+                        <h1>TrendRadar</h1>
+                        <p>全网热点聚合分析报告</p>
+                </div>
+                    <div class="action-buttons" data-html2canvas-ignore>
+                        <div class="btn" onclick="saveAsImage()">保存图片</div>
+                        <div class="btn" onclick="saveAsMultipleImages()">分段保存</div>
+                    </div>
+                    </div>
+                
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <span class="stat-label">新闻总数</span>
+                        <span class="stat-value">251<span class="stat-sub">条</span></span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">热点话题</span>
+                        <span class="stat-value">11<span class="stat-sub">个</span></span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">报告类型</span>
+                        <span class="stat-value" style="font-size: 20px;">实时分析</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">生成时间</span>
+                        <span class="stat-value" style="font-size: 20px;">16:21</span>
+                    </div>
+                </div>
+
+                <!-- 数据可视化 -->
+                <div class="charts-section">
+                    <div class="chart-container">
+                        <div class="chart-title">📊 热度趋势</div>
+                        <div class="chart-wrapper">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">📱 平台分布</div>
+                        <div class="chart-wrapper">
+                            <canvas id="platformChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Display -->
+            
+            <!-- Content Grid -->
+            <div class="masonry-grid">
+    
+            <div class="card">
+                <div class="card-header hot" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">行业板块</div>
+                        <div class="topic-keywords">芯片 半导体 新能源 光伏 锂电池 储能 汽车 电动车 人工智能 AI 云计算 大数据 5G 6G 物联网 区块链 元宇宙 医药 生物科技 房地产 基建 消费 科技</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count hot">17 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">百度热搜</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.baidu.com/s?wd=%E6%B1%BD%E8%BD%A6%E9%AB%98%E9%80%9F%E8%80%97%E5%B0%BD%E7%94%B5%E9%87%8F+2%E4%BA%BA%E6%8E%A8%E8%BD%A6%E8%A2%AB%E6%92%9E%E8%BA%AB%E4%BA%A1" 
+                           class="news-link" target="_blank">汽车高速耗尽电量 2人推车被撞身亡</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 百度热搜 关于 汽车高速耗尽电量 2人推车被撞身亡... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.36kr.com/newsflashes/3613472538936577" 
+                           class="news-link" target="_blank">《人工智能拟人化互动服务管理暂行办法（征求意见稿）》公开征求意见</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 36氪 关于 《人工智能拟人化互动服务管理暂行办法（征求意见稿）》公开征求... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">抖音</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.douyin.com/hot/2348881" 
+                           class="news-link" target="_blank">引导金融资本投长期投硬科技</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 抖音 关于 引导金融资本投长期投硬科技... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">4</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241791" 
+                           class="news-link" target="_blank">涉嫌信披违法违规！商业航天概念牛股臻镭科技遭证监会立案</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 涉嫌信披违法违规！商业航天概念牛股臻镭科技遭证监会立案... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241771" 
+                           class="news-link" target="_blank">财联社创投通：一级市场本周104起融资环比增加8.33%，深蓝汽车完成超61亿元C轮融资</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 财联社创投通：一级市场本周104起融资环比增加8.33%，深... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">6</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241363" 
+                           class="news-link" target="_blank">华为：全球悬赏300万元解决AI时代的存储难题</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社热门 关于 华为：全球悬赏300万元解决AI时代的存储难题... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">7</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.36kr.com/newsflashes/3613206700967173" 
+                           class="news-link" target="_blank">张军扩：刺激消费政策要在总量不减、持续用力的前提下，不断优化商品性消费的支持范围和结构</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 36氪 关于 张军扩：刺激消费政策要在总量不减、持续用力的前提下，不断优化... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">8</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241722" 
+                           class="news-link" target="_blank">科技金融一线调研：再贷款工具创新使用模式 “股贷担保租”打造全生命周期服务生态 新赛道下企业协同需求升级</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 科技金融一线调研：再贷款工具创新使用模式 “股贷担保租”打造... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">9</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.36kr.com/newsflashes/3613201267000585" 
+                           class="news-link" target="_blank">国家数据局：引导金融机构支持数据科技创新，带动长期资本、耐心资本、优质资本更多投向数据科技领域</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 36氪 关于 国家数据局：引导金融机构支持数据科技创新，带动长期资本、耐心... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">10</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社电报</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://api3.cls.cn/share/article/2241803?os=web&amp;sv=8.4.6&amp;app=CailianpressWeb" 
+                           class="news-link" target="_blank">事关人工智能拟人化互动服务管理 国家网信办公开征求意见</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社电报 关于 事关人工智能拟人化互动服务管理 国家网信办公开征求意见... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">11</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241738" 
+                           class="news-link" target="_blank">财联社汽车早报【12月27日】</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 财联社汽车早报【12月27日】... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">12</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241720" 
+                           class="news-link" target="_blank">金融赋能新质生产力一线调研：解码科技金融从 “单点突破” 到 “生态协同”</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 金融赋能新质生产力一线调研：解码科技金融从 “单点突破” 到... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">13</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社电报</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://api3.cls.cn/share/article/2241798?os=web&amp;sv=8.4.6&amp;app=CailianpressWeb" 
+                           class="news-link" target="_blank">新能源汽车质量提升与智能车灯专题启动会召开</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社电报 关于 新能源汽车质量提升与智能车灯专题启动会召开... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">14</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社电报</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://api3.cls.cn/share/article/2241795?os=web&amp;sv=8.4.6&amp;app=CailianpressWeb" 
+                           class="news-link" target="_blank">灵巧手“四小龙”傲意科技与雷迪克签订战略合作</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社电报 关于 灵巧手“四小龙”傲意科技与雷迪克签订战略合作... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">15</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">今日头条</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.toutiao.com/trending/7587826394852491307/" 
+                           class="news-link" target="_blank">美国对华科技竞争战略为何调整</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 今日头条 关于 美国对华科技竞争战略为何调整... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">16</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">知乎</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.zhihu.com/question/1987661697423517255" 
+                           class="news-link" target="_blank">如何看待李蒙疑似在围棋杀猪大会使用 ai 眼镜作弊?</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 知乎 关于 如何看待李蒙疑似在围棋杀猪大会使用 ai 眼镜作弊?... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">17</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">澎湃新闻</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://m.thepaper.cn/newsDetail_forward_32258198" 
+                           class="news-link" target="_blank">大外交｜推迟半导体征税、放行高端芯片出口，美对华科技竞争策略转变</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 澎湃新闻 关于 大外交｜推迟半导体征税、放行高端芯片出口，美对华科技竞争策略... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header hot" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">股市相关</div>
+                        <div class="topic-keywords">A股 港股 美股 上证 深证 创业板 科创板 北交所 沪深300 上涨 下跌 涨停 跌停 牛市 熊市 IPO 退市 停牌 复牌</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count hot">12 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">华尔街见闻</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://wallstreetcn.com/articles/3762133" 
+                           class="news-link" target="_blank">节后首日美股微跌，“金属狂潮”继续，白银暴涨10%，纽铜涨5%，铂钯双位数大涨，和平曙光重挫油价</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 华尔街见闻 关于 节后首日美股微跌，“金属狂潮”继续，白银暴涨10%，纽铜涨5... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241557" 
+                           class="news-link" target="_blank">上交所发布商业火箭企业IPO指引 哪些公司已开启进程？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 上交所发布商业火箭企业IPO指引 哪些公司已开启进程？... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">华尔街见闻</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://wallstreetcn.com/articles/3762115" 
+                           class="news-link" target="_blank">A股三大指数再度翻红，贵金属、有色全线大涨，锂矿强势，国投白银LOF再次跌停，商业航天活跃，算力硬件领跌</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 华尔街见闻 关于 A股三大指数再度翻红，贵金属、有色全线大涨，锂矿强势，国投白... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">4</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241545" 
+                           class="news-link" target="_blank">上交所发布！商业火箭企业适用科创板第五套上市标准 制度包容性、适应性进一步提升</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社热门 关于 上交所发布！商业火箭企业适用科创板第五套上市标准 制度包容性... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">知乎</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.zhihu.com/question/1988017332140864055" 
+                           class="news-link" target="_blank">霸王茶姬美股跌超 14%，创上市以来新低，其咖啡因争议影响有多大？现在做什么才能挽回声誉？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 知乎 关于 霸王茶姬美股跌超 14%，创上市以来新低，其咖啡因争议影响有... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">6</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241723" 
+                           class="news-link" target="_blank">年内近40家上市公司分红超百亿 股息率居前A股名单一览</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社热门 关于 年内近40家上市公司分红超百亿 股息率居前A股名单一览... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">7</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">华尔街见闻</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://wallstreetcn.com/articles/3762139" 
+                           class="news-link" target="_blank">商业火箭科创板上市标准落地！</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 华尔街见闻 关于 商业火箭科创板上市标准落地！... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">8</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241294" 
+                           class="news-link" target="_blank">商业火箭企业适用科创板第五套上市标准 科创板“1+6”改革举措加快落地</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社热门 关于 商业火箭企业适用科创板第五套上市标准 科创板“1+6”改革举... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">9</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241688" 
+                           class="news-link" target="_blank">美股收盘：三大指数集体微跌 金银铜铝板块涨幅居前</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社热门 关于 美股收盘：三大指数集体微跌 金银铜铝板块涨幅居前... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">10</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241688" 
+                           class="news-link" target="_blank">美股收盘：三大指数集体微跌 金银铜铝板块涨幅居前</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 美股收盘：三大指数集体微跌 金银铜铝板块涨幅居前... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">11</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.36kr.com/newsflashes/3613107285525761" 
+                           class="news-link" target="_blank">美股三大指数集体微跌，热门中概股多数上涨</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 36氪 关于 美股三大指数集体微跌，热门中概股多数上涨... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">12</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241635" 
+                           class="news-link" target="_blank">*ST长药涉嫌三年财务造假 拉响强制退市警报|速读公告</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 *ST长药涉嫌三年财务造假 拉响强制退市警报|速读公告... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header warm" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">投资品种</div>
+                        <div class="topic-keywords">基金 ETF 债券 国债 可转债 期货 期权 外汇 黄金 白银 原油 大宗商品</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">8 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">华尔街见闻</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://wallstreetcn.com/articles/3762152" 
+                           class="news-link" target="_blank">白银还能更疯狂？库存耗尽、金银比坍塌，资深分析师喊出300美元天价</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 华尔街见闻 关于 白银还能更疯狂？库存耗尽、金银比坍塌，资深分析师喊出300美... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241446" 
+                           class="news-link" target="_blank">年末遭遇“杀猪盘”？子公司买基金爆亏81%，上市公司报案</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社热门 关于 年末遭遇“杀猪盘”？子公司买基金爆亏81%，上市公司报案... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">华尔街见闻</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://wallstreetcn.com/articles/3762169" 
+                           class="news-link" target="_blank">谁会阻止疯狂的白银？当年亨特兄弟是栽在谁手里？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 华尔街见闻 关于 谁会阻止疯狂的白银？当年亨特兄弟是栽在谁手里？... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">4</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">华尔街见闻</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://wallstreetcn.com/articles/3762156" 
+                           class="news-link" target="_blank">一日狂飙10%！白银今年暴涨超170%的背后：散户狂热正在把行情推向极端</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 华尔街见闻 关于 一日狂飙10%！白银今年暴涨超170%的背后：散户狂热正在把... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">澎湃新闻</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://m.thepaper.cn/newsDetail_forward_32263936" 
+                           class="news-link" target="_blank">建议对42人追责问责，中国黄金集团内蒙古矿业有限公司较大坠落事故调查报告公布</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 澎湃新闻 关于 建议对42人追责问责，中国黄金集团内蒙古矿业有限公司较大坠落... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">6</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241693" 
+                           class="news-link" target="_blank">现货白银、COMEX期银均录得两位数百分比涨幅 | 环球市场</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 现货白银、COMEX期银均录得两位数百分比涨幅 | 环球市场... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">7</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.36kr.com/newsflashes/3613109887354114" 
+                           class="news-link" target="_blank">中国ETF规模达6.03万亿再创历史新高，年内增超6成</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 36氪 关于 中国ETF规模达6.03万亿再创历史新高，年内增超6成... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">8</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.36kr.com/newsflashes/3613108639384578" 
+                           class="news-link" target="_blank">国际金银续创新高，白银本周累涨约18%</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 36氪 关于 国际金银续创新高，白银本周累涨约18%... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header warm" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">政策监管</div>
+                        <div class="topic-keywords">证监会 银保监会 发改委 工信部 商务部 国资委 监管 政策 法规 处罚 调查</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">8 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">澎湃新闻</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://m.thepaper.cn/newsDetail_forward_32228278" 
+                           class="news-link" target="_blank">影子调查这一年：一路匆忙，也听到激人奋发的澎湃回声</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 澎湃新闻 关于 影子调查这一年：一路匆忙，也听到激人奋发的澎湃回声... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">澎湃新闻</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://m.thepaper.cn/newsDetail_forward_32258835" 
+                           class="news-link" target="_blank">河南周口通报一中学食堂承包方举报校领导：成立联合调查组</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 澎湃新闻 关于 河南周口通报一中学食堂承包方举报校领导：成立联合调查组... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">抖音</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.douyin.com/hot/2348815" 
+                           class="news-link" target="_blank">6名大学生坠落事故调查结果</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 抖音 关于 6名大学生坠落事故调查结果... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">4</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">知乎</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.zhihu.com/question/1988190257821213964" 
+                           class="news-link" target="_blank">6 名大学生参观矿企坠落溺亡调查报告公布，人员偏离安全路线，42 人被追责问责，还有哪些信息值得关注？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 知乎 关于 6 名大学生参观矿企坠落溺亡调查报告公布，人员偏离安全路线，... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">知乎</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.zhihu.com/question/1988007064669296434" 
+                           class="news-link" target="_blank">浙江多地高额补贴专科生，最高 18000 元 / 人，怎样看待这一政策？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 知乎 关于 浙江多地高额补贴专科生，最高 18000 元 / 人，怎样看... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">6</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">今日头条</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.toutiao.com/trending/7588352922468106276/" 
+                           class="news-link" target="_blank">6名大学生参观矿企坠亡调查报告公布</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 今日头条 关于 6名大学生参观矿企坠亡调查报告公布... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">7</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">百度热搜</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.baidu.com/s?wd=6%E5%90%8D%E5%A4%A7%E5%AD%A6%E7%94%9F%E5%8F%82%E8%A7%82%E7%9F%BF%E4%BC%81%E5%9D%A0%E4%BA%A1%E8%B0%83%E6%9F%A5%E6%8A%A5%E5%91%8A%E5%85%AC%E5%B8%83" 
+                           class="news-link" target="_blank">6名大学生参观矿企坠亡调查报告公布</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 百度热搜 关于 6名大学生参观矿企坠亡调查报告公布... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">8</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">百度热搜</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.baidu.com/s?wd=20%E5%A4%A9%E5%A9%9A%E5%81%87%E4%B8%8D%E7%BB%99%E6%89%B9%EF%BC%9F%E5%9B%9B%E5%B7%9D%EF%BC%9A%E5%A4%84%E7%BD%9A%E7%94%A8%E4%BA%BA%E5%8D%95%E4%BD%8D" 
+                           class="news-link" target="_blank">20天婚假不给批？四川：处罚用人单位</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 百度热搜 关于 20天婚假不给批？四川：处罚用人单位... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header warm" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">财报业绩</div>
+                        <div class="topic-keywords">财报 业绩 营收 利润 亏损 盈利 分红 回购</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">8 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241790" 
+                           class="news-link" target="_blank">业绩滑坡、纷争升级……医美上游企业告别“野蛮生长”态势，行业迎来“洗牌期”|年终盘点</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 业绩滑坡、纷争升级……医美上游企业告别“野蛮生长”态势，行业... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.36kr.com/newsflashes/3613193805972489" 
+                           class="news-link" target="_blank">国家统计局：高技术制造业利润增速加快</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 36氪 关于 国家统计局：高技术制造业利润增速加快... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241732" 
+                           class="news-link" target="_blank">国家统计局：1—11月份全国规模以上工业企业利润同比增长0.1%</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社热门 关于 国家统计局：1—11月份全国规模以上工业企业利润同比增长0.... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">4</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.36kr.com/newsflashes/3613191739245825" 
+                           class="news-link" target="_blank">国家统计局：装备制造业利润带动作用明显</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 36氪 关于 国家统计局：装备制造业利润带动作用明显... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241732" 
+                           class="news-link" target="_blank">国家统计局：1—11月份全国规模以上工业企业利润同比增长0.1%</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 国家统计局：1—11月份全国规模以上工业企业利润同比增长0.... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">6</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.36kr.com/newsflashes/3613164912821508" 
+                           class="news-link" target="_blank">国家统计局：1—11月份制造业实现利润总额50317.9亿元，增长5.0%</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 36氪 关于 国家统计局：1—11月份制造业实现利润总额50317.9亿元... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">7</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.36kr.com/newsflashes/3613164154930184" 
+                           class="news-link" target="_blank">国家统计局：1—11月份计算机、通信和其他电子设备制造业利润同比增长15.0%</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 36氪 关于 国家统计局：1—11月份计算机、通信和其他电子设备制造业利润... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">8</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.36kr.com/newsflashes/3613163183391747" 
+                           class="news-link" target="_blank">国家统计局：1—11月份全国规模以上工业企业实现利润总额66268.6亿元，同比增长0.1%</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 36氪 关于 国家统计局：1—11月份全国规模以上工业企业实现利润总额66... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">宏观经济</div>
+                        <div class="topic-keywords">GDP CPI PPI PMI 降息 加息 降准 货币政策 财政政策 央行 美联储 经济数据 经济增长 通胀 通缩</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">2 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241471" 
+                           class="news-link" target="_blank">央行报告：着力健全有利于“长钱长投”的制度政策环境 显著提高各类中长期资金实际投资A股的规模和比例</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社热门 关于 央行报告：着力健全有利于“长钱长投”的制度政策环境 显著提高... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241646" 
+                           class="news-link" target="_blank">这一拉美央行发起“去美元化”攻势：将出台多项措施强化本币信心</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 这一拉美央行发起“去美元化”攻势：将出台多项措施强化本币信心... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">小米 雷军</div>
+                        
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">2 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">今日头条</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.toutiao.com/trending/7588415705725275690/" 
+                           class="news-link" target="_blank">小米造了台能打电话的徕卡</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 今日头条 关于 小米造了台能打电话的徕卡... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">澎湃新闻</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://m.thepaper.cn/newsDetail_forward_32257429" 
+                           class="news-link" target="_blank">小米也涨价了！内存压力传导至手机厂商，业界称终端再不涨明年必定亏损</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 澎湃新闻 关于 小米也涨价了！内存压力传导至手机厂商，业界称终端再不涨明年必... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">京东 刘强东</div>
+                        
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.36kr.com/newsflashes/3613477067719943" 
+                           class="news-link" target="_blank">传叮咚买菜要被京东收购，知情人士：暂无收购计划</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 36氪 关于 传叮咚买菜要被京东收购，知情人士：暂无收购计划... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">特斯拉 马斯克</div>
+                        
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">抖音</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.douyin.com/hot/2348565" 
+                           class="news-link" target="_blank">马斯克最新身家7519亿美元</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 抖音 关于 马斯克最新身家7519亿美元... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">英伟达 NVIDIA 黄仁勋</div>
+                        
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.cls.cn/detail/2241691" 
+                           class="news-link" target="_blank">投行分析师谈Groq交易：英伟达借“非独家许可”绕开反垄断审查</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 财联社深度 关于 投行分析师谈Groq交易：英伟达借“非独家许可”绕开反垄断审... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">大模型 人工智能 机器学习 深度学习</div>
+                        
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">知乎</span>
+                            
+                            <span class="tag tag-time">16:21</span>
+                        </div>
+                        <a href="https://www.zhihu.com/question/1987571664876234588" 
+                           class="news-link" target="_blank">如何看待所有前沿大模型在「SUPERChem」化学考试中均败给了低年级本科生闭卷平均水平？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                        <div class="news-preview">
+                            这是一条来自 知乎 关于 如何看待所有前沿大模型在「SUPERChem」化学考试中均败... 的新闻。点击标题查看详情。
+                        </div>
+                    </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card new-section-card">
+                <div class="card-header new-section" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        ⚡ 本次新增
+                            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count">3 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                    <div class="news-item">
+                        <div class="news-index">1</div>
+                        <div class="news-content">
+                            <div class="news-meta">
+                                <span class="tag tag-source">36氪</span>
+                                <span class="rank-indicator top"></span>
+                            </div>
+                            <a href="https://www.36kr.com/newsflashes/3613477067719943" 
+                               class="news-link" target="_blank">传叮咚买菜要被京东收购，知情人士：暂无收购计划</a>
+                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                            <div class="news-preview">
+                                这是一条关于 传叮咚买菜要被京东收购，知情人士：暂无收... 的新闻摘要。点击标题可查看完整内容。
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="news-item">
+                        <div class="news-index">2</div>
+                        <div class="news-content">
+                            <div class="news-meta">
+                                <span class="tag tag-source">36氪</span>
+                                <span class="rank-indicator top"></span>
+                            </div>
+                            <a href="https://www.36kr.com/newsflashes/3613472538936577" 
+                               class="news-link" target="_blank">《人工智能拟人化互动服务管理暂行办法（征求意见稿）》公开征求意见</a>
+                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                            <div class="news-preview">
+                                这是一条关于 《人工智能拟人化互动服务管理暂行办法（征... 的新闻摘要。点击标题可查看完整内容。
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="news-item">
+                        <div class="news-index">3</div>
+                        <div class="news-content">
+                            <div class="news-meta">
+                                <span class="tag tag-source">知乎</span>
+                                <span class="rank-indicator "></span>
+                            </div>
+                            <a href="https://www.zhihu.com/question/1987661697423517255" 
+                               class="news-link" target="_blank">如何看待李蒙疑似在围棋杀猪大会使用 ai 眼镜作弊?</a>
+                            <div class="preview-toggle" onclick="togglePreview(this)">查看摘要 ▼</div>
+                            <div class="news-preview">
+                                这是一条关于 如何看待李蒙疑似在围棋杀猪大会使用 ai... 的新闻摘要。点击标题可查看完整内容。
+                            </div>
+                        </div>
+                    </div>
+                
+                </div>
+            </div>
+        
+            </div> <!-- End Masonry Grid -->
+
+            <div class="footer">
+                <p>
+                    生成于 2025-12-27 16:21:28
+                </p>
+                <p class="update-info">发现新版本 4.0.3</p>
+            </div>
+        </div>
+
+        <script>
+            // 卡片展开/收起
+            function toggleCard(header) {
+                const card = header.closest('.card');
+                card.classList.toggle('collapsed');
+            }
+
+            // 新闻摘要展开/收起
+            function togglePreview(btn) {
+                const newsItem = btn.closest('.news-item');
+                newsItem.classList.toggle('show-preview');
+                btn.textContent = newsItem.classList.contains('show-preview') 
+                    ? '收起摘要 ▲' 
+                    : '查看摘要 ▼';
+            }
+
+            // 初始化图表
+            document.addEventListener('DOMContentLoaded', function() {
+                // 默认折叠所有卡片（显示前3条新闻）
+                document.querySelectorAll('.card').forEach(card => {
+                    const newsItems = card.querySelectorAll('.news-item');
+                    if (newsItems.length > 3) {
+                        card.classList.add('collapsed');
+                    }
+                });
+
+                // 热度趋势图
+                const trendCtx = document.getElementById('trendChart').getContext('2d');
+                new Chart(trendCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['# === ', '# === ', '# === ', '# === ', '# === ', '# === ', '小米 雷军', '京东 刘强东'],
+                        datasets: [{
+                            label: '新闻数量',
+                            data: [17, 12, 8, 8, 8, 2, 2, 1],
+                            backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 2,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleColor: '#fff',
+                                bodyColor: '#fff'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { color: 'rgba(255,255,255,0.6)' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            x: {
+                                ticks: { color: 'rgba(255,255,255,0.6)' },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+
+                // 平台分布图
+                const platformCtx = document.getElementById('platformChart').getContext('2d');
+                new Chart(platformCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['百度热搜', '36氪', '抖音', '财联社深度', '财联社热门', '财联社电报'],
+                        datasets: [{
+                            data: [3, 12, 3, 13, 8, 3],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(245, 158, 11, 0.8)',
+                                'rgba(239, 68, 68, 0.8)',
+                                'rgba(139, 92, 246, 0.8)',
+                                'rgba(236, 72, 153, 0.8)'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: 'rgba(255,255,255,0.8)',
+                                    padding: 10,
+                                    font: { size: 11 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12
+                            }
+                        }
+                    }
+                });
+            });
+
+            // 截图功能
+            async function saveAsImage() {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '生成中...';
+                
+                try {
+                    const container = document.getElementById('capture-container');
+                    const canvas = await html2canvas(container, {
+                        scale: 2,
+                        backgroundColor: '#f0f2f5',
+                        useCORS: true,
+                        logging: false
+                    });
+
+                    const link = document.createElement('a');
+                    link.download = 'TrendRadar_Report_20251227_1621.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    
+                    btn.textContent = '已保存';
+                } catch (e) {
+                    console.error(e);
+                    btn.textContent = '失败';
+                }
+                
+                setTimeout(() => btn.textContent = originalText, 2000);
+            }
+
+            async function saveAsMultipleImages() {
+                alert('建议使用"保存图片"功能直接保存完整报告');
+            }
+        </script>
+    </body>
+    </html>
+    
