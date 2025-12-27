@@ -239,16 +239,43 @@ def render_html_content(
                 max-height: 100%;
             }}
 
-            /* --- Grid Layout --- */
+            /* --- Multi-Column Layout --- */
             .masonry-grid {{
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                grid-template-columns: repeat(3, 1fr);
                 gap: 24px;
+                align-items: start;
+            }}
+            
+            @media (max-width: 1200px) {{
+                .masonry-grid {{
+                    grid-template-columns: repeat(2, 1fr);
+                }}
             }}
             
             @media (max-width: 768px) {{
                 .masonry-grid {{
                     grid-template-columns: 1fr;
+                }}
+            }}
+            
+            /* 新增卡片放在右上角 */
+            .new-section-card {{
+                grid-column: 3;
+                grid-row: 1;
+            }}
+            
+            @media (max-width: 1200px) {{
+                .new-section-card {{
+                    grid-column: 2;
+                    grid-row: 1;
+                }}
+            }}
+            
+            @media (max-width: 768px) {{
+                .new-section-card {{
+                    grid-column: 1;
+                    grid-row: 1;
                 }}
             }}
 
@@ -337,35 +364,44 @@ def render_html_content(
 
             .expand-icon {{
                 font-size: 20px;
-                transition: transform 0.3s;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 color: #9ca3af;
+                display: inline-block;
             }}
 
             .card.collapsed .expand-icon {{
                 transform: rotate(-90deg);
             }}
+            
+            .card-header:hover .expand-icon {{
+                color: #3b82f6;
+            }}
 
             /* News List - 可展开收起 */
             .news-list {{
                 padding: 8px 0;
-                max-height: 600px;
-                overflow-y: auto;
-                overflow-x: hidden;
-                transition: max-height 0.3s ease-out;
+                max-height: 2000px;
+                overflow: hidden;
+                transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+                opacity: 1;
             }}
 
             /* 折叠状态：只显示前3条新闻 */
             .card.collapsed .news-list {{
-                max-height: none;
-                overflow: visible;
-            }}
-            
-            .card.collapsed .news-item {{
-                display: flex;
+                max-height: 300px;
+                overflow: hidden;
             }}
             
             .card.collapsed .news-item:nth-child(n+4) {{
-                display: none;
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: opacity 0.2s ease, transform 0.2s ease;
+            }}
+            
+            .news-item {{
+                opacity: 1;
+                transform: translateY(0);
+                transition: opacity 0.3s ease, transform 0.3s ease, background 0.2s;
             }}
             
             /* 折叠提示：在新闻列表底部显示 */
@@ -404,7 +440,6 @@ def render_html_content(
                 display: flex;
                 gap: 12px;
                 align-items: flex-start;
-                transition: background 0.2s;
             }}
 
             .news-item:last-child {{
