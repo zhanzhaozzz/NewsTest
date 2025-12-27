@@ -113,7 +113,7 @@ notification:
   #   GitHub Actions cron: '0 0,4,10 * * *'  # UTC时间，对应北京时间 8:00, 12:00, 18:00
   #
   push_window:
-    enabled: true: # 是否启用推送时间窗口控制
+    enabled: true # 是否启用推送时间窗口控制
     time_range:
       start: "07:00"  # 推送时间窗口开始（使用配置的时区，默认北京时间）
       end: "18:30"    # 推送时间窗口结束（使用配置的时区，默认北京时间）
