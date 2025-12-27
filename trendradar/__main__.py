@@ -337,33 +337,38 @@ class NewsAnalyzer:
         html_file_path: Optional[str] = None,
     ) -> bool:
         """统一的通知发送逻辑，包含所有判断条件"""
-        has_notification = self._has_notification_configured()
         cfg = self.ctx.config
+
+        # 1. 优先检查推送窗口（最高优先级）
+        if cfg["PUSH_WINDOW"]["ENABLED"]:
+            push_manager = self.ctx.create_push_manager()
+            time_range_start = cfg["PUSH_WINDOW"]["TIME_RANGE"]["START"]
+            time_range_end = cfg["PUSH_WINDOW"]["TIME_RANGE"]["END"]
+
+            # 窗口外：直接跳过推送
+            if not push_manager.is_in_time_range(time_range_start, time_range_end):
+                now = self.ctx.get_time()
+                print(
+                    f"[推送控制] 当前时间 {now.strftime('%H:%M')} 不在推送窗口 {time_range_start}-{time_range_end}，跳过推送"
+                )
+                return False
+
+            # 窗口内：检查是否已推送（仅当 once_per_day 启用时）
+            if cfg["PUSH_WINDOW"]["ONCE_PER_DAY"]:
+                if push_manager.has_pushed_today():
+                    print("[推送控制] 今天已推送过，跳过本次推送")
+                    return False
+                else:
+                    print("[推送控制] 今天首次推送")
+
+        # 2. 检查通知配置和内容有效性
+        has_notification = self._has_notification_configured()
 
         if (
             cfg["ENABLE_NOTIFICATION"]
             and has_notification
             and self._has_valid_content(stats, new_titles)
         ):
-            # 推送窗口控制
-            if cfg["PUSH_WINDOW"]["ENABLED"]:
-                push_manager = self.ctx.create_push_manager()
-                time_range_start = cfg["PUSH_WINDOW"]["TIME_RANGE"]["START"]
-                time_range_end = cfg["PUSH_WINDOW"]["TIME_RANGE"]["END"]
-
-                if not push_manager.is_in_time_range(time_range_start, time_range_end):
-                    now = self.ctx.get_time()
-                    print(
-                        f"推送窗口控制：当前时间 {now.strftime('%H:%M')} 不在推送时间窗口 {time_range_start}-{time_range_end} 内，跳过推送"
-                    )
-                    return False
-
-                if cfg["PUSH_WINDOW"]["ONCE_PER_DAY"]:
-                    if push_manager.has_pushed_today():
-                        print(f"推送窗口控制：今天已推送过，跳过本次推送")
-                        return False
-                    else:
-                        print(f"推送窗口控制：今天首次推送")
 
             # 准备报告数据
             report_data = self.ctx.prepare_report(stats, failed_ids, new_titles, id_to_name, mode)
@@ -386,7 +391,7 @@ class NewsAnalyzer:
                 print("未配置任何通知渠道，跳过通知发送")
                 return False
 
-            # 如果成功发送了任何通知，且启用了每天只推一次，则记录推送
+            # 如果成功发送了任何通知，且启用了推送窗口和每天只推一次，则记录推送
             if (
                 cfg["PUSH_WINDOW"]["ENABLED"]
                 and cfg["PUSH_WINDOW"]["ONCE_PER_DAY"]
@@ -394,6 +399,7 @@ class NewsAnalyzer:
             ):
                 push_manager = self.ctx.create_push_manager()
                 push_manager.record_push(report_type)
+                print("[推送控制] 推送成功，已记录推送状态")
 
             return True
 
