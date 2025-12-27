@@ -113,11 +113,11 @@ notification:
   #   GitHub Actions cron: '0 0,4,10 * * *'  # UTC时间，对应北京时间 8:00, 12:00, 18:00
   #
   push_window:
-    enabled: false  # 是否启用推送时间窗口控制，默认关闭
+    enabled: true: # 是否启用推送时间窗口控制
     time_range:
-      start: "20:00"  # 推送时间窗口开始（使用配置的时区，默认北京时间）
-      end: "22:00"    # 推送时间窗口结束（使用配置的时区，默认北京时间）
-    once_per_day: true  # 每天只推送一次（true）还是窗口内每次执行都推送（false）
+      start: "07:00"  # 推送时间窗口开始（使用配置的时区，默认北京时间）
+      end: "18:30"    # 推送时间窗口结束（使用配置的时区，默认北京时间）
+    once_per_day: false  # 每天只推送一次（true）还是窗口内每次执行都推送（false）
     # 注意：
     #   - GitHub Actions 执行时间可能延迟5-15分钟，建议推送窗口留出缓冲时间
     #   - 如需每天推送多次，必须设置 once_per_day: false
