@@ -180,11 +180,17 @@ weight:
   hotness_weight: 0.1 # 热度权重
 
 # name 可以定义任意名称，只具有显示作用，即使项目运行了几天后，忽然改掉 name 也不会影响代码的正常运行
-# 投资者配置：聚焦财经、实时新闻
+# 投资者配置：聚焦财经、实时新闻、科技动态
 platforms:
   # === 核心财经平台（必选） ===
   - id: "wallstreetcn-hot"
-    name: "华尔街见闻"
+    name: "华尔街见闻最热"
+  - id: "wallstreetcn-live"
+    name: "华尔街见闻快讯"
+  - id: "wallstreetcn-newest"
+    name: "华尔街见闻最新"
+  - id: "mktnews"
+    name: "MKTNews快讯"
   - id: "cls-hot"
     name: "财联社热门"
   - id: "cls-telegraph"
@@ -193,6 +199,14 @@ platforms:
     name: "财联社深度"
   - id: "36kr"
     name: "36氪"
+  - id: "36kr-newsflashes"
+    name: "36氪快讯"
+  - id: "xueqiu"
+    name: "雪球热门股票"
+  - id: "gelonghui-event"
+    name: "格隆汇事件"
+  - id: "jin10"
+    name: "金十数据"
   
   # === 综合实时新闻（推荐） ===
   - id: "toutiao"
@@ -205,16 +219,43 @@ platforms:
     name: "澎湃新闻"
   - id: "douyin"
     name: "抖音"
+  - id: "bilibili-hot-search"
+    name: "哔哩哔哩热搜"
+  - id: "qq-news"
+    name: "腾讯新闻"
   
-  # === 可选：行业动态 ===
+  # === 科技/技术平台 ===
+  - id: "ithome"
+    name: "IT之家"
+  - id: "v2ex-latest"
+    name: "V2EX最新"
+  - id: "juejin"
+    name: "稀土掘金"
+  - id: "sspai"
+    name: "少数派"
+  - id: "coolapk"
+    name: "酷安"
+  - id: "github-trending"
+    name: "GitHub热门"
+  
+  # === 社区/论坛 ===
   - id: "zhihu"
     name: "知乎"
-
+  - id: "hupu-bxj"
+    name: "虎扑"
+  - id: "tieba"
+    name: "百度贴吧"
   
-  # === 已禁用：娱乐类平台 ===
-  # - id: "bilibili-hot-search"
-  #   name: "bilibili 热搜"
-  # - id: "tieba"
-  #   name: "贴吧"
+  # === 国际新闻（可选） ===
+  - id: "zaobao"
+    name: "联合早报"
+  - id: "cankaoxiaoxi"
+    name: "参考消息"
+  
+  # === 已禁用：其他平台 ===
   # - id: "ifeng"
   #   name: "凤凰网"
+  # - id: "hackernews"
+  #   name: "Hacker News"
+  # - id: "producthunt"
+  #   name: "Product Hunt"
