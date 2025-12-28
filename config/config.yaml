@@ -115,13 +115,14 @@ notification:
   push_window:
     enabled: true # 是否启用推送时间窗口控制
     time_range:
-      start: "07:00"  # 推送时间窗口开始（使用配置的时区，默认北京时间）
+      start: "08:00"  # 推送时间窗口开始（使用配置的时区，默认北京时间）
       end: "18:30"    # 推送时间窗口结束（使用配置的时区，默认北京时间）
     once_per_day: false  # 每天只推送一次（true）还是窗口内每次执行都推送（false）
     # 注意：
     #   - GitHub Actions 执行时间可能延迟5-15分钟，建议推送窗口留出缓冲时间
     #   - 如需每天推送多次，必须设置 once_per_day: false
     #   - 如需精准定时推送，建议使用 Docker 部署在个人服务器上
+    #   - 当前配置：每天推送3次(8:00, 12:00, 18:00)，配合 GitHub Actions cron
 
   # ⚠️⚠️⚠️ 重要安全警告 / IMPORTANT SECURITY WARNING ⚠️⚠️⚠️
   #
