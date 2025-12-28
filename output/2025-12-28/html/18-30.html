@@ -1,0 +1,3021 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TrendRadar 热点聚合 - 12-28</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <style>
+            :root {
+                --bg-color: #f0f2f5;
+                --card-bg: #ffffff;
+                --text-main: #1f2937;
+                --text-sub: #6b7280;
+                --accent-color: #3b82f6;
+                --danger-color: #ef4444;
+                --success-color: #10b981;
+                --warning-color: #f59e0b;
+                --border-radius: 12px;
+                --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                --header-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            }
+
+            * { box-sizing: border-box; }
+            
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                margin: 0;
+                padding: 24px;
+                background-color: var(--bg-color);
+                color: var(--text-main);
+                line-height: 1.5;
+            }
+
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+
+            /* --- Header Area --- */
+            .dashboard-header {
+                background: var(--header-gradient);
+                color: white;
+                border-radius: 16px;
+                padding: 32px;
+                margin-bottom: 32px;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                position: relative;
+                overflow: hidden;
+            }
+
+            .header-top {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 32px;
+                position: relative;
+                z-index: 2;
+            }
+
+            .brand-section h1 {
+                margin: 0;
+                font-size: 28px;
+                font-weight: 800;
+                letter-spacing: -0.5px;
+                background: linear-gradient(to right, #60a5fa, #a78bfa);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                display: none;
+            }
+
+            .brand-section p {
+                margin: 0;
+                opacity: 0.9;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .action-buttons {
+                display: flex;
+                gap: 12px;
+            }
+
+            .btn {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 600;
+                transition: all 0.2s;
+                backdrop-filter: blur(4px);
+            }
+
+            .btn:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-1px);
+            }
+
+            .stats-row {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 24px;
+                position: relative;
+                z-index: 2;
+                margin-bottom: 24px;
+            }
+
+            .stat-card {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                padding: 16px 20px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .stat-label {
+                font-size: 12px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                opacity: 0.6;
+                margin-bottom: 4px;
+                display: block;
+            }
+
+            .stat-value {
+                font-size: 28px;
+                font-weight: 700;
+                letter-spacing: -1px;
+            }
+            
+            .stat-sub {
+                font-size: 12px;
+                opacity: 0.8;
+                margin-left: 4px;
+                font-weight: 400;
+            }
+
+            /* 数据可视化区域 */
+            .charts-section {
+                display: grid;
+                grid-template-columns: 2fr 1fr;
+                gap: 20px;
+                margin-top: 24px;
+            }
+
+            .chart-container {
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                padding: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                height: 300px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .chart-title {
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 12px;
+                opacity: 0.8;
+                flex-shrink: 0;
+            }
+            
+            .chart-wrapper {
+                flex: 1;
+                position: relative;
+                min-height: 0;
+            }
+            
+            .chart-wrapper canvas {
+                max-height: 100%;
+            }
+
+            /* --- Multi-Column Layout --- */
+            .masonry-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
+                align-items: start;
+            }
+            
+            @media (max-width: 1200px) {
+                .masonry-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+            
+            @media (max-width: 768px) {
+                .masonry-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .card {
+                background: var(--card-bg);
+                border-radius: var(--border-radius);
+                box-shadow: var(--card-shadow);
+                overflow: hidden;
+                transition: transform 0.2s, box-shadow 0.2s;
+                border: 1px solid rgba(0,0,0,0.03);
+                display: flex;
+                flex-direction: column;
+            }
+
+            .card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Card Header - 可点击展开/收起 */
+            .card-header {
+                padding: 16px 20px;
+                border-bottom: 1px solid #f3f4f6;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: #ffffff;
+                position: relative;
+                cursor: pointer;
+                user-select: none;
+            }
+            
+            .card-header:hover {
+                background: #f9fafb;
+            }
+            
+            .card-header::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 4px;
+                background: var(--accent-color);
+            }
+            
+            .card-header.hot::before { background: var(--danger-color); }
+            .card-header.warm::before { background: var(--warning-color); }
+            .card-header.new-section::before { background: var(--success-color); }
+
+            .topic-title {
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--text-main);
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+            
+            .topic-main {
+                font-size: 18px;
+                font-weight: 700;
+            }
+            
+            .topic-keywords {
+                font-size: 11px;
+                font-weight: 400;
+                color: #9ca3af;
+                line-height: 1.4;
+            }
+
+            .topic-count {
+                background: #f3f4f6;
+                color: var(--text-sub);
+                font-size: 12px;
+                font-weight: 600;
+                padding: 4px 10px;
+                border-radius: 20px;
+            }
+            
+            .topic-count.hot {
+                background: #fee2e2;
+                color: #ef4444;
+            }
+
+            .expand-icon {
+                font-size: 20px;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                color: #9ca3af;
+                display: inline-block;
+            }
+
+            .card.collapsed .expand-icon {
+                transform: rotate(-90deg);
+            }
+            
+            .card-header:hover .expand-icon {
+                color: #3b82f6;
+            }
+
+            /* News List - 可展开收起 */
+            .news-list {
+                padding: 8px 0;
+                max-height: 2000px;
+                overflow: hidden;
+                transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+                opacity: 1;
+            }
+
+            /* 折叠状态：只显示前3条新闻 */
+            .card.collapsed .news-list {
+                max-height: 300px;
+                overflow: hidden;
+            }
+            
+            .card.collapsed .news-item:nth-child(n+4) {
+                opacity: 0;
+                transform: translateY(-10px);
+                transition: opacity 0.2s ease, transform 0.2s ease;
+            }
+            
+            .news-item {
+                opacity: 1;
+                transform: translateY(0);
+                transition: opacity 0.3s ease, transform 0.3s ease, background 0.2s;
+            }
+            
+            /* 折叠提示：在新闻列表底部显示 */
+            .card.collapsed .news-list::after {
+                content: '点击标题查看全部';
+                display: block;
+                text-align: center;
+                padding: 12px;
+                font-size: 12px;
+                color: #9ca3af;
+                font-style: italic;
+            }
+            
+            /* 滚动条样式 */
+            .news-list::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            .news-list::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 3px;
+            }
+            
+            .news-list::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 3px;
+            }
+            
+            .news-list::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
+            }
+
+            .news-item {
+                padding: 12px 20px;
+                border-bottom: 1px solid #f9fafb;
+                display: flex;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .news-item:last-child {
+                border-bottom: none;
+            }
+            
+            .news-item:hover {
+                background-color: #f9fafb;
+            }
+
+            .news-index {
+                color: #9ca3af;
+                font-size: 14px;
+                font-weight: 500;
+                min-width: 20px;
+                padding-top: 2px;
+            }
+
+            .news-content {
+                flex: 1;
+            }
+
+            .news-meta {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-bottom: 4px;
+                font-size: 11px;
+            }
+
+            .tag {
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-weight: 600;
+            }
+            
+            .tag-source {
+                background: #eff6ff;
+                color: #3b82f6;
+            }
+            
+            .tag-new {
+                background: #ecfdf5;
+                color: #059669;
+                text-transform: uppercase;
+            }
+            
+            .tag-time {
+                color: #9ca3af;
+            }
+
+            .news-link {
+                color: var(--text-main);
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 500;
+                line-height: 1.4;
+                display: block;
+                transition: color 0.2s;
+            }
+
+            .news-link:hover {
+                color: var(--accent-color);
+            }
+            
+            /* 新闻摘要预览 */
+            .news-preview {
+                margin-top: 8px;
+                padding: 8px 12px;
+                background: #f9fafb;
+                border-left: 3px solid #e5e7eb;
+                font-size: 13px;
+                color: #6b7280;
+                line-height: 1.5;
+                border-radius: 4px;
+                display: none;
+            }
+
+            .news-item.show-preview .news-preview {
+                display: block;
+            }
+
+            .preview-toggle {
+                font-size: 11px;
+                color: #3b82f6;
+                cursor: pointer;
+                margin-top: 4px;
+                display: inline-block;
+            }
+
+            .preview-toggle:hover {
+                text-decoration: underline;
+            }
+            
+            .rank-indicator {
+                display: inline-block;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background-color: #d1d5db;
+                margin-right: 4px;
+            }
+            
+            .rank-indicator.top { background-color: #ef4444; }
+            .rank-indicator.high { background-color: #f97316; }
+
+            /* New Section Special Style */
+            .new-section-card .card-header {
+                background: #ecfdf5;
+                border-bottom: 1px solid #d1fae5;
+            }
+            
+            .new-section-card .topic-title {
+                color: #065f46;
+            }
+
+            /* Error Section */
+            .error-card {
+                background: #fff5f5;
+                border: 1px solid #feb2b2;
+                padding: 16px;
+                margin-bottom: 24px;
+                border-radius: 8px;
+                color: #c53030;
+            }
+
+            /* Footer */
+            .footer {
+                text-align: center;
+                padding: 40px 0;
+                color: var(--text-sub);
+                font-size: 13px;
+            }
+
+            .footer a {
+                color: var(--text-sub);
+                text-decoration: none;
+                border-bottom: 1px dotted #9ca3af;
+            }
+
+            @media (max-width: 600px) {
+                body { padding: 12px; }
+                .dashboard-header { padding: 20px; border-radius: 12px; }
+                .stats-row { grid-template-columns: 1fr 1fr; gap: 16px; }
+                .header-top { flex-direction: column; gap: 16px; }
+                .action-buttons { width: 100%; }
+                .btn { flex: 1; text-align: center; }
+                .charts-section { grid-template-columns: 1fr; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container" id="capture-container">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <div class="header-top">
+                    <div class="brand-section">
+                        <h1>TrendRadar</h1>
+                        <p>全网热点聚合分析报告</p>
+                    </div>
+                    <div class="action-buttons" data-html2canvas-ignore>
+                        <div class="btn" onclick="saveAsImage()">保存图片</div>
+                        <div class="btn" onclick="saveAsMultipleImages()">分段保存</div>
+                    </div>
+                    </div>
+                
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <span class="stat-label">新闻总数</span>
+                        <span class="stat-value">568<span class="stat-sub">条</span></span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">热点话题</span>
+                        <span class="stat-value">17<span class="stat-sub">个</span></span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">报告类型</span>
+                        <span class="stat-value" style="font-size: 20px;">实时分析</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">生成时间</span>
+                        <span class="stat-value" style="font-size: 20px;">18:30</span>
+                    </div>
+                </div>
+
+                <!-- 数据可视化 -->
+                <div class="charts-section">
+                    <div class="chart-container">
+                        <div class="chart-title">📊 热度趋势</div>
+                        <div class="chart-wrapper">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title">📱 平台分布</div>
+                        <div class="chart-wrapper">
+                            <canvas id="platformChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Display -->
+            
+            <div class="error-card">
+                <strong>⚠️ 部分平台获取失败：</strong>
+                wallstreetcn-live, wallstreetcn-newest, 36kr-newsflashes, gelonghui-event, qq-news, v2ex-latest, github-trending, hupu-bxj
+                        </div>
+        
+            <!-- Content Grid -->
+            <div class="masonry-grid">
+    
+            <div class="card">
+                <div class="card-header hot" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">行业板块</div>
+                        <div class="topic-keywords">芯片 半导体 新能源 光伏 锂电池 储能 汽车 电动车 人工智能 AI 云计算 大数据 5G 6G 物联网 区块链 元宇宙 医药 生物科技 房地产 基建 消费 科技</div>
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count hot">47 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b6423-415a-7557-ab51-e5d37e2a7d1b" 
+                           class="news-link" target="_blank">IAEA: IAEA TEAM IS MONITORING REPAIRS EXPECTED TO LAST A FEW DAYS</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.36kr.com/newsflashes/3615014147982339" 
+                           class="news-link" target="_blank">亿晶光电：全椒县光伏项目无法按期推进，收到听证通知</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">澎湃新闻</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://m.thepaper.cn/newsDetail_forward_32265641" 
+                           class="news-link" target="_blank">南京路步行街跨年消费“大餐”来了：线上线下可抢券、商家延时至凌晨</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">4</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">稀土掘金</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://juejin.cn/post/7587965908289110026" 
+                           class="news-link" target="_blank">最强「学业成绩分析压力感知型 AI 心理陪伴」智能体—基于腾讯元器×TextIn大模型加速器×混元大模型的实战构建</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b6422-ba7b-7557-ab51-dc587d18bf6c" 
+                           class="news-link" target="_blank">IAEA: CRUCIAL POWER LINE REPAIRS BEGIN NEAR UKRAINE‘S ZNPP FOLLOWING ANOTHER IAEA-BROKERED LOCAL CEASEFIRE</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">6</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">雪球热门股票</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://xueqiu.com/s/SH688270" 
+                           class="news-link" target="_blank">臻镭科技</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">7</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/654.htm" 
+                           class="news-link" target="_blank">极石 ADAMAS 汽车上市：指导价 34.99 万元起，1.5T 发动机 +108kW 电机增程动力</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">8</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">稀土掘金</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://juejin.cn/post/7587845752681807935" 
+                           class="news-link" target="_blank">2025 年终醒悟，AI  让我误以为自己很强，未来程序员的转型之路</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">9</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">稀土掘金</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://juejin.cn/post/7587738151658881024" 
+                           class="news-link" target="_blank">【AI 编程实战】第 5 篇：Pinia 状态管理 - 从混乱代码到优雅架构</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">10</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社电报</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://api3.cls.cn/share/article/2242141?os=web&amp;sv=8.4.6&amp;app=CailianpressWeb" 
+                           class="news-link" target="_blank">宁德时代：明年钠电池将在换电、乘用车、商用车、储能等领域大规模应用</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">11</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">华尔街见闻最热</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://wallstreetcn.com/articles/3762196" 
+                           class="news-link" target="_blank">为优先给AI数据中心供电，特朗普要抢美国电网监管权</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">12</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">澎湃新闻</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://m.thepaper.cn/newsDetail_forward_32265274" 
+                           class="news-link" target="_blank">新能源车高速公路电量耗尽，司乘二人下来推车被撞身亡</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">13</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/642.htm" 
+                           class="news-link" target="_blank">HMD Pulse 2+ 手机参数曝光：6.7 英寸 120Hz LCD 屏幕，紫光展锐 T615 芯片</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">14</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">雪球热门股票</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://xueqiu.com/s/SZ002788" 
+                           class="news-link" target="_blank">鹭燕医药</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">15</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/640.htm" 
+                           class="news-link" target="_blank">飞机引擎爆改发电机：美国 AI 数据中心接入电网需排队，等待期最长可达七年之久</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">16</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b5fa0-a8b8-7557-ab51-a3da6b396cf8" 
+                           class="news-link" target="_blank">ZELENSKIY SAYS UKRAINE HAS ITS RED LINES, BUT IS SURE COMPROMISE CAN BE FOUND</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">17</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2242020" 
+                           class="news-link" target="_blank">原告向法官出示证据，右下角写着“AI生成”</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">18</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">稀土掘金</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://juejin.cn/post/7588004601392529442" 
+                           class="news-link" target="_blank">AI 做公众号漫画，竟然日入 400+</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">19</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b5f9f-115c-7557-ab51-9e16cd27418f" 
+                           class="news-link" target="_blank">ZELENSKIY SAYS HE IS OPEN TO DIALOGUE WITH UKRAINIAN SOCIETY IF IT DOES NOT LIKE PROPOSALS FROM PEACE TALKS</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">20</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b5f9e-2113-7557-ab51-8e81ff0aaf7a" 
+                           class="news-link" target="_blank">ZELENSKIY SAYS UKRAINE CANNOT HAVE A REFERENDUM IN CURRENT SECURITY CONDITIONS, NEEDS STRONG SECURITY GUARANTEES</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">21</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">百度热搜</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.baidu.com/s?wd=%E8%B4%A2%E6%94%BF%E9%83%A8%EF%BC%9A2026%E5%B9%B4%E5%A4%A7%E5%8A%9B%E6%8F%90%E6%8C%AF%E6%B6%88%E8%B4%B9" 
+                           class="news-link" target="_blank">财政部：2026年大力提振消费</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">22</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/627.htm" 
+                           class="news-link" target="_blank">中国科技考古：AI 修复壁画、毫米级扫描古建，穿越千年历史探寻中华文明密码</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">23</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社电报</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://api3.cls.cn/share/article/2242129?os=web&amp;sv=8.4.6&amp;app=CailianpressWeb" 
+                           class="news-link" target="_blank">亿晶光电：全椒县光伏项目无法按期推进 收到听证通知</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">24</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b5f12-5d39-7557-ab51-683d6beb0469" 
+                           class="news-link" target="_blank">UKRAINE&#x27;S ZELENSKIY: RUSSIA ATTACKED UKRAINE WITH NEARLY 500 DRONES AND 40 MISSILES OVERNIGHT, TARGETING ENERGY AND CIVILIAN INFRASTRUCTURE</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">25</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">金十数据</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://flash.jin10.com/detail/20251228164730984800" 
+                           class="news-link" target="_blank">重庆追加汽车置换、汽车报废更新补贴</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">26</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">百度热搜</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.baidu.com/s?wd=%E5%8F%B2%E4%B8%8A%E6%9C%80%E4%B8%A5%E7%94%B5%E5%8A%A8%E6%B1%BD%E8%BD%A6%E7%94%B5%E8%80%97%E5%9B%BD%E6%A0%87%E6%9D%A5%E4%BA%86" 
+                           class="news-link" target="_blank">史上最严电动汽车电耗国标来了</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">27</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b5f11-ad20-7557-ab51-652d4dee997b" 
+                           class="news-link" target="_blank">UKRAINE&#x27;S FOREIGN MINISTER: A THIRD OF KYIV IS WITHOUT HEATING AFTER RUSSIAN ATTACK</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">28</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">金十数据</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://flash.jin10.com/detail/20251228164627469800" 
+                           class="news-link" target="_blank">数字环驾中国大赛运营基地在津揭牌 打造新能源汽车产业创新服务新平台</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">29</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">雪球热门股票</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://xueqiu.com/s/SZ300476" 
+                           class="news-link" target="_blank">胜宏科技</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">30</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">金十数据</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://flash.jin10.com/detail/20251228163923165800" 
+                           class="news-link" target="_blank">小鹏汽车联合北大提出全新视觉Token剪枝框架</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">31</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">稀土掘金</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://juejin.cn/post/7587459328071057418" 
+                           class="news-link" target="_blank">年底科技大考：2025 中国前端工程师的 AI 辅助工具实战盘点</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">32</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b5e89-1a0b-7557-ab51-51ed02b2602a" 
+                           class="news-link" target="_blank">CAMBODIA FOREIGN MINISTRY STATEMENT: CHINESE, THAI &amp; CAMBODIAN FOREIGN MINISTERS TO HOLD TALKS ON DEC 28-29</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">33</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社电报</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://api3.cls.cn/share/article/2242121?os=web&amp;sv=8.4.6&amp;app=CailianpressWeb" 
+                           class="news-link" target="_blank">重庆追加汽车置换、汽车报废更新补贴</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">34</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b5e40-50bb-7557-ab51-4a17dca6dc63" 
+                           class="news-link" target="_blank">POLAND SAYS AIRPORTS IN RZESZOW AND LUBLIN TEMPORARILY CLOSED AFTER JETS SCRAMBLED DUE TO RUSSIAN STRIKES ON UKRAINE</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">35</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社电报</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://api3.cls.cn/share/article/2242120?os=web&amp;sv=8.4.6&amp;app=CailianpressWeb" 
+                           class="news-link" target="_blank">恒瑞医药：将SHR6508项目有偿许可给翰森制药 有资格获得监管里程碑付款及商业里程碑付款最高可达1.9亿元</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">36</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241925" 
+                           class="news-link" target="_blank">国产AI大战迈入新阶段？豆包日活破亿 机构：“Chatbot入口之争”已然意义不大</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">37</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b5e06-0d9a-7557-ab51-3dbd346f469c" 
+                           class="news-link" target="_blank">JOINT STATEMENT: BOTH SIDES AGREE TO MAINTAIN CURRENT TROOP DEPLOYMENTS WITHOUT FURTHER MOVEMENT</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">38</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b5e05-a745-7557-ab51-31d311062202" 
+                           class="news-link" target="_blank">CAMBODIA DEFENCE MINISTRY STATEMENT: THAILAND AND CAMBODIA SIGN CEASEFIRE AGREEMENT</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">39</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/616.htm" 
+                           class="news-link" target="_blank">乘联分会崔东树：新能源锂电池需求 4 季度疲软严重，原有的生产计划调减明显</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">40</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">稀土掘金</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://juejin.cn/post/7587714124856770614" 
+                           class="news-link" target="_blank">同事查日志太慢，我现场教他一套 awk、tail、grep、sed 组合拳</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">41</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b5d50-e69b-7557-ab51-1a3c8427ad36" 
+                           class="news-link" target="_blank">UKRAINIAN CAPITAL KYIV UNDER MASS RUSSIAN ATTACK, AIR DEFENCES IN OPERATION, OFFICIALS SAY</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">42</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">稀土掘金</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://juejin.cn/post/7587965800273362970" 
+                           class="news-link" target="_blank">别再让 AI 直接写页面了：一种更稳的中后台开发方式</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">43</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b5c8f-b3ca-7557-ab51-0e6713ff561c" 
+                           class="news-link" target="_blank">&lt;b&gt;SPOT PALLADIUM EXTENDS GAINS, LAST UP 15% TO $1,937.64/OZ&lt;/b&gt;</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">44</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241811" 
+                           class="news-link" target="_blank">涉及人工智能拟人化互动服务管理 国家网信办公开征求意见</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">45</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">少数派</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://sspai.com/post/103187" 
+                           class="news-link" target="_blank">一半文书交给 AI 后，我重新理解了「法律工具」</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">46</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">MKTNews快讯</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://mktnews.net/flashDetail.html?id=019b5c85-efdc-7557-ab50-fa906ed357d9" 
+                           class="news-link" target="_blank">NETEASE: YINGFENG DING TO RETIRE AS HEAD OF INTERACTIVE ENTERTAINMENT GROUP ON DEC. 31</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">47</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">今日头条</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.toutiao.com/trending/7588528256232587283/" 
+                           class="news-link" target="_blank">女子开新能源车意外冲进河里遇难</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header hot" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">投资品种</div>
+                        <div class="topic-keywords">基金 ETF 债券 国债 可转债 期货 期权 外汇 黄金 白银 原油 大宗商品</div>
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count hot">14 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">华尔街见闻最热</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://wallstreetcn.com/articles/3762194" 
+                           class="news-link" target="_blank">白银狂飙，马斯克直言：这不好！</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">华尔街见闻最热</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://wallstreetcn.com/articles/3762195" 
+                           class="news-link" target="_blank">担心“A500ETF年底冲量导致年初反复”？申万宏源：春季主题行情已赢在当下</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/656.htm" 
+                           class="news-link" target="_blank">60 年教条被推翻：科学家发现古菌打破生物学“黄金法则”，能以两种方式解读同一密码子</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">4</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2242080" 
+                           class="news-link" target="_blank">中信证券：从创新高的ETF看跨年品种选择</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">联合早报</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.zaochenbao.com/news/china/202512/2860864.html" 
+                           class="news-link" target="_blank">中国国内ETF总规模突破6万亿人民币</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">6</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2242083" 
+                           class="news-link" target="_blank">周末要闻汇总：官方明确明年继续“国补”，中国ETF迈入6万亿时刻</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">7</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">知乎</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.zhihu.com/question/1988248140562863210" 
+                           class="news-link" target="_blank">银比油贵时隔 45 年再现，现货白银涨超 10%，钯金涨超 14%，为何贵金属还在暴涨，历史信号怎么看？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">8</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241956" 
+                           class="news-link" target="_blank">一盎司白银＞一桶原油 大宗商品市场演绎“冰火两重天”</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">9</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.36kr.com/newsflashes/3614740562084867" 
+                           class="news-link" target="_blank">今年以来全市场完成备案的私募证券投资基金数量已经超过12000只</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">10</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">澎湃新闻</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://m.thepaper.cn/newsDetail_forward_32266773" 
+                           class="news-link" target="_blank">年内连跨三个万亿台阶，国内ETF总规模突破6万亿元</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">11</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">参考消息</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://ckxxapp.ckxx.net/pages/2025/12/28/a10b1c31cb3241eda45b9c01ffeb1438.html" 
+                           class="news-link" target="_blank">中国设创投引导基金发展前沿产业</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">12</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">百度热搜</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.baidu.com/s?wd=%E7%99%BD%E9%93%B6%E4%BB%B7%E6%A0%BC%E6%9A%B4%E6%B6%A8+%E9%A9%AC%E6%96%AF%E5%85%8B%EF%BC%9A%E8%BF%99%E5%8F%AF%E4%B8%8D%E5%A5%BD" 
+                           class="news-link" target="_blank">白银价格暴涨 马斯克：这可不好</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">13</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/613.htm" 
+                           class="news-link" target="_blank">追觅年终奖加码，创始人俞浩宣布额外奖励全体员工 1 克黄金</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">14</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241873" 
+                           class="news-link" target="_blank">7张期货罚单一日同发，年内首现公司整体被暂停开户，多位总经理与首风被罚</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header hot" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">股市相关</div>
+                        <div class="topic-keywords">A股 港股 美股 上证 深证 创业板 科创板 北交所 沪深300 上涨 下跌 涨停 跌停 牛市 熊市 IPO 退市 停牌 复牌</div>
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count hot">12 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241788" 
+                           class="news-link" target="_blank">拟易主特种机器人龙头的胜通能源月内股价涨超210% 12月披露并购重组进展的A股名单一览</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241760" 
+                           class="news-link" target="_blank">2025年A股上市公司分红2.64万亿 分红超百亿个股名单一览</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241810" 
+                           class="news-link" target="_blank">智能驾驶细分龙头月内涨超95% 梳理产业链激光雷达等环节市占率居前A股名单</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">4</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241723" 
+                           class="news-link" target="_blank">年内近40家上市公司分红超百亿 股息率居前A股名单一览</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.36kr.com/newsflashes/3614901329019904" 
+                           class="news-link" target="_blank">11连板胜通能源：如未来股票价格进一步上涨 公司可能向交易所申请停牌核查</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">6</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社电报</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://api3.cls.cn/share/article/2242096?os=web&amp;sv=8.4.6&amp;app=CailianpressWeb" 
+                           class="news-link" target="_blank">【风口研报·行业】上交所发布《商业火箭企业适用科创板第五套上市标准》，分析师看好民营火箭公司IPO将迎来加速浪潮，叠加的密集招标释放的大量订单，行业有望迎来戴维斯双击；另有公司是航天院所唯一上市平台</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">7</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.36kr.com/newsflashes/3614896844719107" 
+                           class="news-link" target="_blank">通宇通讯：公司股价短期上涨幅度较大 存在市场情绪过热、非理性炒作风险</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">8</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社电报</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://api3.cls.cn/share/article/2242133?os=web&amp;sv=8.4.6&amp;app=CailianpressWeb" 
+                           class="news-link" target="_blank">2连板天奇股份：正在筹划2025年度向特定对象发行A股股票的事项</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">9</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241788" 
+                           class="news-link" target="_blank">12月披露并购重组进展的A股名单一览</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">10</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241760" 
+                           class="news-link" target="_blank">2025年A股上市公司分红2.64万亿 分红超百亿个股名单一览</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">11</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.36kr.com/newsflashes/3614894719091714" 
+                           class="news-link" target="_blank">8连板嘉美包装：如未来股票价格进一步异常上涨 公司可能申请停牌核查</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">12</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241723" 
+                           class="news-link" target="_blank">年内近40家上市公司分红超百亿 股息率居前A股名单一览</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header hot" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">重点公司（科技）</div>
+                        <div class="topic-keywords">华为 鸿蒙 HarmonyOS 任正非</div>
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count hot">12 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/653.htm" 
+                           class="news-link" target="_blank">首次大规模采用国产编程语言仓颉主体开发，美团众包 / 骑手 App 适配华为鸿蒙系统</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">酷安</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.coolapk.com/feed/69469450" 
+                           class="news-link" target="_blank">我真的很好奇一件事，小米的舆论现在怎么这么奇怪，早上打开酷安想看看酷友用17ultra拍的照片找找拍照灵感，结果点开板块要么是对比华为这个不行那个欠缺，要么就是减配货不值价。</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">酷安</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.coolapk.com/feed/69440792" 
+                           class="news-link" target="_blank">还是华为有实力比安卓抄了几个月端上来的一堆毛玻璃精致多了。</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">4</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/625.htm" 
+                           class="news-link" target="_blank">高德开放平台推出业内首个全栈自研「鸿蒙司机端 SDK」，填补网约车行业鸿蒙手机空白</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">酷安</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.coolapk.com/feed/69463558" 
+                           class="news-link" target="_blank">逛了一圈手机店，不得不感叹双层OLED＋鸿蒙像素渲染确实牛逼，iQOO15那块屏幕也不行</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">6</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">酷安</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.coolapk.com/feed/69451983" 
+                           class="news-link" target="_blank">用了OPPO才知道以前在华为过的是什么苦日子#OPPOFindX9Pro# #华为P70Pro+#</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">7</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/619.htm" 
+                           class="news-link" target="_blank">华为 FreeClip 2 耳夹耳机通过星闪认证，有望近期 OTA 星闪音频</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">8</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/618.htm" 
+                           class="news-link" target="_blank">儿童手表“跨品牌交友”启动，小米、诺基亚联合投资品牌“小寻”官宣支持与华为碰一碰加好友</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">9</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">少数派</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://sspai.com/post/103179" 
+                           class="news-link" target="_blank">鸿蒙 1024｜新平台、老地方：在鸿蒙生态打造心的栖息地</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">10</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/612.htm" 
+                           class="news-link" target="_blank">华为鸿蒙 HarmonyOS 实况窗支持 200+ 应用，每月平均服务 7700 万+ 人次</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">11</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">少数派</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://sspai.com/post/103199" 
+                           class="news-link" target="_blank">鸿蒙 1024｜不到一个月开发的鸿蒙应用，一个不小心成为爆款</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">12</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">少数派</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://sspai.com/post/103206" 
+                           class="news-link" target="_blank">鸿蒙 1024｜从评测到鸿蒙应用开发：我做了一款专业屏幕测试工具</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header warm" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">宏观经济</div>
+                        <div class="topic-keywords">GDP CPI PPI PMI 降息 加息 降准 货币政策 财政政策 央行 美联储 经济数据 经济增长 通胀 通缩</div>
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">9 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">华尔街见闻最热</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://wallstreetcn.com/articles/3762202" 
+                           class="news-link" target="_blank">财政部：2026年继续实施更加积极的财政政策，扩大财政支出盘子，继续支持消费品以旧换新</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">金十数据</span>
+                            <span class="tag tag-new">NEW</span>
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://flash.jin10.com/detail/20251228175513322800" 
+                           class="news-link" target="_blank">央行科技司李伟：积极稳妥、安全有序推进人工智能金融应用</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">今日头条</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.toutiao.com/trending/7588304546699415082/" 
+                           class="news-link" target="_blank">财政政策如何继续“更加积极”</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">4</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社电报</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://api3.cls.cn/share/article/2242149?os=web&amp;sv=8.4.6&amp;app=CailianpressWeb" 
+                           class="news-link" target="_blank">央行科技司李伟：积极稳妥、安全有序推进人工智能金融应用</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">5</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">华尔街见闻最热</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://wallstreetcn.com/articles/3762120" 
+                           class="news-link" target="_blank">元旦周重磅日程：美联储主席或揭晓，巴菲特退休，“港股GPU第一股”挂牌</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">6</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2242040" 
+                           class="news-link" target="_blank">财政部：2026年继续实施更加积极的财政政策 扩大财政支出盘子</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">7</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">联合早报</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.zaochenbao.com/news/china/202512/2860866.html" 
+                           class="news-link" target="_blank">中国财政部：明年继续实施更积极财政政策</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">8</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社热门</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2242040" 
+                           class="news-link" target="_blank">财政部：2026年继续实施更加积极的财政政策 扩大财政支出盘子</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">9</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241965" 
+                           class="news-link" target="_blank">环球下周看点：美联储权力更迭进入倒计时 美股年度两位数涨幅在望</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">政策监管</div>
+                        <div class="topic-keywords">证监会 银保监会 发改委 工信部 商务部 国资委 监管 政策 法规 处罚 调查</div>
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">4 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">联合早报</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.zaochenbao.com/news/Chronicles/202512/2860872.html" 
+                           class="news-link" target="_blank">原中国银行新加坡分行行长程军传被带走调查</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.36kr.com/newsflashes/3614911566447622" 
+                           class="news-link" target="_blank">ST葫芦娃：因涉嫌信息披露违法违规，收到证监会立案告知书</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社电报</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://api3.cls.cn/share/article/2242128?os=web&amp;sv=8.4.6&amp;app=CailianpressWeb" 
+                           class="news-link" target="_blank">国网综合能源服务集团有限公司党委委员、副总经理樊功成接受纪律审查和监察调查</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">4</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.36kr.com/newsflashes/3614780132852992" 
+                           class="news-link" target="_blank">海南自贸港封关超十日 多项政策实现首批业务落地</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">小米 雷军</div>
+                        
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">3 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">酷安</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.coolapk.com/feed/69459833" 
+                           class="news-link" target="_blank">罗巍锐评：Magic8Pro把小米17Ultra秒成渣！</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">酷安</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.coolapk.com/feed/69461692" 
+                           class="news-link" target="_blank">今天去摸机，看到一个米粉大爷拿着小米14ultra兴致勃勃地准备买小米17ultra，还给店员分享自己拍的照片，有山有水有花朵。大爷正谈到从拍花谈到17ultra微距的时候，被店员机敏的搪塞过去了。</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">3</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">酷安</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.coolapk.com/feed/69468499" 
+                           class="news-link" target="_blank">目前全网都有部分徕卡版反映变焦环松动问题，想看看酷友们怎么个情况，黑色松动抠“黑”，白色松动抠“白”；黑色不松动抠1，白色不松动抠0。[受虐滑稽]看看能不能统计一下情况#小米17ProMax# #HyperOS3#</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">比亚迪 王传福</div>
+                        
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">2 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">雪球热门股票</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://xueqiu.com/s/SZ002594" 
+                           class="news-link" target="_blank">比亚迪</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/607.htm" 
+                           class="news-link" target="_blank">比亚迪腾势 Z 超级跑车官宣出征纽北，将迎接终极试炼</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">苹果 Apple iphone</div>
+                        
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">2 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">哔哩哔哩热搜</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://search.bilibili.com/all?keyword=%E7%94%A8%E8%8B%B9%E6%9E%9C%E9%A3%8E%E6%A0%BC%E5%AE%A3%E4%BC%A0%E9%92%A5%E5%8C%99%E5%9C%88" 
+                           class="news-link" target="_blank">用苹果风格宣传钥匙圈</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                <div class="news-item">
+                    <div class="news-index">2</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">微博</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://s.weibo.com/weibo?q=%23%E8%8B%B9%E6%9E%9C%E7%85%AE%E6%B0%B4%E5%96%9D%E5%A5%BD%E5%A4%84%E5%A4%AA%E5%A4%9A%E4%BA%86%23&amp;t=31&amp;band_rank=21&amp;Refer=top" 
+                           class="news-link" target="_blank">苹果煮水喝好处太多了</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">阿里 阿里巴巴 马云</div>
+                        
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">稀土掘金</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://juejin.cn/post/7587785079738318854" 
+                           class="news-link" target="_blank">阿里二面：新生代垃圾回收为啥使用标记复制算法？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card new-section-card">
+                <div class="card-header new-section" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        ⚡ 本次新增
+                            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count">5 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                    <div class="news-item">
+                        <div class="news-index">1</div>
+                        <div class="news-content">
+                            <div class="news-meta">
+                                <span class="tag tag-source">财联社深度</span>
+                                <span class="rank-indicator "></span>
+                            </div>
+                            <a href="https://www.cls.cn/detail/2241788" 
+                               class="news-link" target="_blank">12月披露并购重组进展的A股名单一览</a>
+                            <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                            <div class="news-preview">
+                                📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="news-item">
+                        <div class="news-index">2</div>
+                        <div class="news-content">
+                            <div class="news-meta">
+                                <span class="tag tag-source">金十数据</span>
+                                <span class="rank-indicator top"></span>
+                            </div>
+                            <a href="https://flash.jin10.com/detail/20251228175513322800" 
+                               class="news-link" target="_blank">央行科技司李伟：积极稳妥、安全有序推进人工智能金融应用</a>
+                            <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                            <div class="news-preview">
+                                📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="news-item">
+                        <div class="news-index">3</div>
+                        <div class="news-content">
+                            <div class="news-meta">
+                                <span class="tag tag-source">IT之家</span>
+                                <span class="rank-indicator top"></span>
+                            </div>
+                            <a href="https://www.ithome.com/0/908/656.htm" 
+                               class="news-link" target="_blank">60 年教条被推翻：科学家发现古菌打破生物学“黄金法则”，能以两种方式解读同一密码子</a>
+                            <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                            <div class="news-preview">
+                                📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="news-item">
+                        <div class="news-index">4</div>
+                        <div class="news-content">
+                            <div class="news-meta">
+                                <span class="tag tag-source">IT之家</span>
+                                <span class="rank-indicator top"></span>
+                            </div>
+                            <a href="https://www.ithome.com/0/908/654.htm" 
+                               class="news-link" target="_blank">极石 ADAMAS 汽车上市：指导价 34.99 万元起，1.5T 发动机 +108kW 电机增程动力</a>
+                            <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                            <div class="news-preview">
+                                📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="news-item">
+                        <div class="news-index">5</div>
+                        <div class="news-content">
+                            <div class="news-meta">
+                                <span class="tag tag-source">IT之家</span>
+                                <span class="rank-indicator high"></span>
+                            </div>
+                            <a href="https://www.ithome.com/0/908/653.htm" 
+                               class="news-link" target="_blank">首次大规模采用国产编程语言仓颉主体开发，美团众包 / 骑手 App 适配华为鸿蒙系统</a>
+                            <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                            <div class="news-preview">
+                                📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+                            </div>
+                        </div>
+                    </div>
+                
+                                </div>
+                            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">字节 bytedance 张一鸣</div>
+                        
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">知乎</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.zhihu.com/question/1987674776395851743" 
+                           class="news-link" target="_blank">字节通报三季度 120 名员工触犯红线被辞退，14 人被移交司法机关处理，大厂在管理中存在哪些难点？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">京东 刘强东</div>
+                        
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">酷安</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.coolapk.com/feed/69470938" 
+                           class="news-link" target="_blank">一周时间，京东 Mate80promax 的评价从 2000 直接蹦到 5000 了，有点猛啊，看样子产能上来了，刚好这周小米 17ultra 也开售，这两台机器的目标用户会有重叠么，在商言商，大家觉得 #小米17Ultra# 上市是否会加速 mate80pm 的产能。</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">特斯拉 马斯克</div>
+                        
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">IT之家</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.ithome.com/0/908/629.htm" 
+                           class="news-link" target="_blank">特斯拉回应女子 30 多万买到老款 Model Y：员工协助下单未执行标准确认流程</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">英伟达 NVIDIA 黄仁勋</div>
+                        
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">财联社深度</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.cls.cn/detail/2241877" 
+                           class="news-link" target="_blank">HBM市场格局或生变？英伟达Rubin出货预期渐浓 存储巨头上演“你追我赶”</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">claude Anthropic</div>
+                        
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">稀土掘金</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://juejin.cn/post/7587518397950525494" 
+                           class="news-link" target="_blank">告别 Terminal！IDEA 也可以爽用 Claude Code 了？</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">财报业绩</div>
+                        <div class="topic-keywords">财报 业绩 营收 利润 亏损 盈利 分红 回购</div>
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">36氪</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.36kr.com/newsflashes/3614897918084354" 
+                           class="news-link" target="_blank">钧达股份：与尚翼光电相关合作事项不会对公司当期经营业绩产生重大影响</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            <div class="card">
+                <div class="card-header normal" onclick="toggleCard(this)">
+                    <div class="topic-title">
+                        <div class="topic-main">国际关系（影响市场）</div>
+                        <div class="topic-keywords">中美 中欧 贸易战 关税 制裁 脱钩</div>
+            </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span class="topic-count normal">1 条</span>
+                        <span class="expand-icon">▼</span>
+                            </div>
+                        </div>
+                <div class="news-list">
+        
+                <div class="news-item">
+                    <div class="news-index">1</div>
+                    <div class="news-content">
+                        <div class="news-meta">
+                            <span class="tag tag-source">今日头条</span>
+                            
+                            <span class="tag tag-time">18:30</span>
+                </div>
+                        <a href="https://www.toutiao.com/trending/7588146737680957503/" 
+                           class="news-link" target="_blank">赖岳谦：中方制裁美企业更精准更快速</a>
+                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
+                        <div class="news-preview">
+                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+            </div>
+        </div>
+                </div>
+            
+                </div>
+            </div>
+        
+            </div> <!-- End Masonry Grid -->
+
+            <div class="footer">
+                <p>
+                    生成于 2025-12-28 18:30:12
+                </p>
+    
+                <p class="update-info">发现新版本 4.0.3</p>
+    
+            </div>
+        </div>
+    
+        <script>
+            // 卡片展开/收起
+            function toggleCard(header) {
+                const card = header.closest('.card');
+                card.classList.toggle('collapsed');
+            }
+
+            // 新闻说明展开/收起
+            function togglePreview(btn) {
+                const newsItem = btn.closest('.news-item');
+                newsItem.classList.toggle('show-preview');
+                btn.textContent = newsItem.classList.contains('show-preview') 
+                    ? '收起 ▲' 
+                    : '💡 说明';
+            }
+
+            // 初始化图表
+            document.addEventListener('DOMContentLoaded', function() {
+                // 默认折叠所有卡片（显示前3条新闻）
+                document.querySelectorAll('.card').forEach(card => {
+                    const newsItems = card.querySelectorAll('.news-item');
+                    if (newsItems.length > 3) {
+                        card.classList.add('collapsed');
+                    }
+                });
+
+                // 热度趋势图
+                const trendCtx = document.getElementById('trendChart').getContext('2d');
+                new Chart(trendCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ["行业板块", "投资品种", "股市相关", "重点公司（科技）", "宏观经济", "政策监管", "小米 雷军", "比亚迪 王传福"],
+                        datasets: [{
+                            label: '新闻数量',
+                            data: [47, 14, 12, 12, 9, 4, 3, 2],
+                            backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 2,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleColor: '#fff',
+                                bodyColor: '#fff'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { 
+                                    color: 'rgba(255,255,255,0.6)',
+                                    precision: 0
+                                },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            x: {
+                                ticks: { 
+                                    color: 'rgba(255,255,255,0.6)',
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    autoSkip: false
+                                },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+
+                // 平台分布图
+                const platformCtx = document.getElementById('platformChart').getContext('2d');
+                new Chart(platformCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ["MKTNews快讯", "36氪", "澎湃新闻", "稀土掘金", "雪球热门股票", "IT之家"],
+                        datasets: [{
+                            data: [14, 8, 3, 9, 4, 14],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(16, 185, 129, 0.8)',
+                                'rgba(245, 158, 11, 0.8)',
+                                'rgba(239, 68, 68, 0.8)',
+                                'rgba(139, 92, 246, 0.8)',
+                                'rgba(236, 72, 153, 0.8)'
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: 'rgba(255,255,255,0.8)',
+                                    padding: 10,
+                                    font: { size: 11 }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12
+                            }
+                        }
+                    }
+                });
+            });
+
+            // 截图功能
+            async function saveAsImage() {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '生成中...';
+                
+                try {
+                    const container = document.getElementById('capture-container');
+                    const canvas = await html2canvas(container, {
+                        scale: 2,
+                        backgroundColor: '#f0f2f5',
+                            useCORS: true,
+                        logging: false
+                    });
+
+                        const link = document.createElement('a');
+                    link.download = 'TrendRadar_Report_20251228_1830.png';
+                    link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    
+                    btn.textContent = '已保存';
+                } catch (e) {
+                    console.error(e);
+                    btn.textContent = '失败';
+                }
+                
+                setTimeout(() => btn.textContent = originalText, 2000);
+            }
+
+            async function saveAsMultipleImages() {
+                alert('建议使用"保存图片"功能直接保存完整报告');
+            }
+        </script>
+    </body>
+    </html>
+    
