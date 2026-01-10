@@ -6,7 +6,7 @@ HTML 报告渲染模块
 """
 
 from datetime import datetime
-from typing import Dict, Optional, Callable
+from typing import Dict, List, Optional, Callable
 
 from trendradar.report.helpers import html_escape
 
@@ -20,6 +20,9 @@ def render_html_content(
     *,
     reverse_content_order: bool = False,
     get_time_func: Optional[Callable[[], datetime]] = None,
+    rss_items: Optional[List[Dict]] = None,
+    rss_new_items: Optional[List[Dict]] = None,
+    display_mode: str = "keyword",
 ) -> str:
     """渲染HTML内容
 
@@ -31,960 +34,1259 @@ def render_html_content(
         update_info: 更新信息（可选）
         reverse_content_order: 是否反转内容顺序（新增热点在前）
         get_time_func: 获取当前时间的函数（可选，默认使用 datetime.now）
+        rss_items: RSS 统计条目列表（可选）
+        rss_new_items: RSS 新增条目列表（可选）
+        display_mode: 显示模式 ("keyword"=按关键词分组, "platform"=按平台分组)
 
     Returns:
         渲染后的 HTML 字符串
     """
-    
-    # 准备统计数据
-    hot_news_count = sum(len(stat["titles"]) for stat in report_data["stats"])
-    topic_count = len(report_data["stats"])
-    
-    # 计算平台分布
-    platform_stats = {}
-    for stat in report_data["stats"]:
-        for title in stat["titles"]:
-            source = title.get("source_name", "未知")
-            platform_stats[source] = platform_stats.get(source, 0) + 1
-    
-    # 获取时间
-    if get_time_func:
-        now = get_time_func()
-    else:
-        now = datetime.now()
-    
-    # 报告类型文案
-    report_type_text = "实时分析"
-    if is_daily_summary:
-        if mode == "current":
-            report_type_text = "当前榜单"
-        elif mode == "incremental":
-            report_type_text = "增量监控"
-        else:
-            report_type_text = "当日汇总"
-
-    html = f"""
+    html = """
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>TrendRadar 热点聚合 - {now.strftime("%m-%d")}</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <title>热点新闻分析</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <style>
-            :root {{
-                --bg-color: #f0f2f5;
-                --card-bg: #ffffff;
-                --text-main: #1f2937;
-                --text-sub: #6b7280;
-                --accent-color: #3b82f6;
-                --danger-color: #ef4444;
-                --success-color: #10b981;
-                --warning-color: #f59e0b;
-                --border-radius: 12px;
-                --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-                --header-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            }}
-
-            * {{ box-sizing: border-box; }}
-            
-            body {{
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            * { box-sizing: border-box; }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
                 margin: 0;
-                padding: 24px;
-                background-color: var(--bg-color);
-                color: var(--text-main);
+                padding: 16px;
+                background: #fafafa;
+                color: #333;
                 line-height: 1.5;
-            }}
+            }
 
-            .container {{
-                max-width: 1400px;
+            .container {
+                max-width: 600px;
                 margin: 0 auto;
-            }}
-
-            /* --- Header Area --- */
-            .dashboard-header {{
-                background: var(--header-gradient);
-                color: white;
-                border-radius: 16px;
-                padding: 32px;
-                margin-bottom: 32px;
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-                position: relative;
+                background: white;
+                border-radius: 12px;
                 overflow: hidden;
-            }}
+                box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+            }
 
-            .header-top {{
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 32px;
+            .header {
+                background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+                color: white;
+                padding: 32px 24px;
+                text-align: center;
                 position: relative;
-                z-index: 2;
-            }}
+            }
 
-            .brand-section h1 {{
-                margin: 0;
-                font-size: 28px;
-                font-weight: 800;
-                letter-spacing: -0.5px;
-                background: linear-gradient(to right, #60a5fa, #a78bfa);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                display: none;
-            }}
-
-            .brand-section p {{
-                margin: 0;
-                opacity: 0.9;
-                font-size: 16px;
-                font-weight: 600;
-            }}
-
-            .action-buttons {{
+            .save-buttons {
+                position: absolute;
+                top: 16px;
+                right: 16px;
                 display: flex;
-                gap: 12px;
-            }}
+                gap: 8px;
+            }
 
-            .btn {{
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.2);
+            .save-btn {
+                background: rgba(255, 255, 255, 0.2);
+                border: 1px solid rgba(255, 255, 255, 0.3);
                 color: white;
                 padding: 8px 16px;
-                border-radius: 8px;
+                border-radius: 6px;
                 cursor: pointer;
                 font-size: 13px;
-                font-weight: 600;
-                transition: all 0.2s;
-                backdrop-filter: blur(4px);
-            }}
+                font-weight: 500;
+                transition: all 0.2s ease;
+                backdrop-filter: blur(10px);
+                white-space: nowrap;
+            }
 
-            .btn:hover {{
-                background: rgba(255, 255, 255, 0.2);
+            .save-btn:hover {
+                background: rgba(255, 255, 255, 0.3);
+                border-color: rgba(255, 255, 255, 0.5);
                 transform: translateY(-1px);
-            }}
+            }
 
-            .stats-row {{
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-                gap: 24px;
-                position: relative;
-                z-index: 2;
-                margin-bottom: 24px;
-            }}
-
-            .stat-card {{
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 12px;
-                padding: 16px 20px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-            }}
-
-            .stat-label {{
-                font-size: 12px;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                opacity: 0.6;
-                margin-bottom: 4px;
-                display: block;
-            }}
-
-            .stat-value {{
-                font-size: 28px;
-                font-weight: 700;
-                letter-spacing: -1px;
-            }}
-            
-            .stat-sub {{
-                font-size: 12px;
-                opacity: 0.8;
-                margin-left: 4px;
-                font-weight: 400;
-            }}
-
-            /* 数据可视化区域 */
-            .charts-section {{
-                display: grid;
-                grid-template-columns: 2fr 1fr;
-                gap: 20px;
-                margin-top: 24px;
-            }}
-
-            .chart-container {{
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 12px;
-                padding: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                height: 300px;
-                display: flex;
-                flex-direction: column;
-            }}
-
-            .chart-title {{
-                font-size: 14px;
-                font-weight: 600;
-                margin-bottom: 12px;
-                opacity: 0.8;
-                flex-shrink: 0;
-            }}
-            
-            .chart-wrapper {{
-                flex: 1;
-                position: relative;
-                min-height: 0;
-            }}
-            
-            .chart-wrapper canvas {{
-                max-height: 100%;
-            }}
-
-            /* --- Multi-Column Layout --- */
-            .masonry-grid {{
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 24px;
-                align-items: start;
-            }}
-            
-            @media (max-width: 1200px) {{
-                .masonry-grid {{
-                    grid-template-columns: repeat(2, 1fr);
-                }}
-            }}
-            
-            @media (max-width: 768px) {{
-                .masonry-grid {{
-                    grid-template-columns: 1fr;
-                }}
-            }}
-
-            .card {{
-                background: var(--card-bg);
-                border-radius: var(--border-radius);
-                box-shadow: var(--card-shadow);
-                overflow: hidden;
-                transition: transform 0.2s, box-shadow 0.2s;
-                border: 1px solid rgba(0,0,0,0.03);
-                display: flex;
-                flex-direction: column;
-            }}
-
-            .card:hover {{
-                transform: translateY(-2px);
-                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            }}
-
-            /* Card Header - 可点击展开/收起 */
-            .card-header {{
-                padding: 16px 20px;
-                border-bottom: 1px solid #f3f4f6;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background: #ffffff;
-                position: relative;
-                cursor: pointer;
-                user-select: none;
-            }}
-            
-            .card-header:hover {{
-                background: #f9fafb;
-            }}
-            
-            .card-header::before {{
-                content: '';
-                position: absolute;
-                left: 0;
-                top: 0;
-                bottom: 0;
-                width: 4px;
-                background: var(--accent-color);
-            }}
-            
-            .card-header.hot::before {{ background: var(--danger-color); }}
-            .card-header.warm::before {{ background: var(--warning-color); }}
-            .card-header.new-section::before {{ background: var(--success-color); }}
-
-            .topic-title {{
-                font-size: 18px;
-                font-weight: 700;
-                color: var(--text-main);
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 4px;
-            }}
-            
-            .topic-main {{
-                font-size: 18px;
-                font-weight: 700;
-            }}
-            
-            .topic-keywords {{
-                font-size: 11px;
-                font-weight: 400;
-                color: #9ca3af;
-                line-height: 1.4;
-            }}
-
-            .topic-count {{
-                background: #f3f4f6;
-                color: var(--text-sub);
-                font-size: 12px;
-                font-weight: 600;
-                padding: 4px 10px;
-                border-radius: 20px;
-            }}
-            
-            .topic-count.hot {{
-                background: #fee2e2;
-                color: #ef4444;
-            }}
-
-            .expand-icon {{
-                font-size: 20px;
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                color: #9ca3af;
-                display: inline-block;
-            }}
-
-            .card.collapsed .expand-icon {{
-                transform: rotate(-90deg);
-            }}
-            
-            .card-header:hover .expand-icon {{
-                color: #3b82f6;
-            }}
-
-            /* News List - 可展开收起 */
-            .news-list {{
-                padding: 8px 0;
-                max-height: 2000px;
-                overflow: hidden;
-                transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-                opacity: 1;
-            }}
-
-            /* 折叠状态：只显示前3条新闻 */
-            .card.collapsed .news-list {{
-                max-height: 300px;
-                overflow: hidden;
-            }}
-            
-            .card.collapsed .news-item:nth-child(n+4) {{
-                opacity: 0;
-                transform: translateY(-10px);
-                transition: opacity 0.2s ease, transform 0.2s ease;
-            }}
-            
-            .news-item {{
-                opacity: 1;
+            .save-btn:active {
                 transform: translateY(0);
-                transition: opacity 0.3s ease, transform 0.3s ease, background 0.2s;
-            }}
-            
-            /* 折叠提示：在新闻列表底部显示 */
-            .card.collapsed .news-list::after {{
-                content: '点击标题查看全部';
-                display: block;
-                text-align: center;
-                padding: 12px;
-                font-size: 12px;
-                color: #9ca3af;
-                font-style: italic;
-            }}
-            
-            /* 滚动条样式 */
-            .news-list::-webkit-scrollbar {{
-                width: 6px;
-            }}
-            
-            .news-list::-webkit-scrollbar-track {{
-                background: #f1f1f1;
-                border-radius: 3px;
-            }}
-            
-            .news-list::-webkit-scrollbar-thumb {{
-                background: #cbd5e1;
-                border-radius: 3px;
-            }}
-            
-            .news-list::-webkit-scrollbar-thumb:hover {{
-                background: #94a3b8;
-            }}
+            }
 
-            .news-item {{
-                padding: 12px 20px;
-                border-bottom: 1px solid #f9fafb;
+            .save-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
+            .header-title {
+                font-size: 22px;
+                font-weight: 700;
+                margin: 0 0 20px 0;
+            }
+
+            .header-info {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+                font-size: 14px;
+                opacity: 0.95;
+            }
+
+            .info-item {
+                text-align: center;
+            }
+
+            .info-label {
+                display: block;
+                font-size: 12px;
+                opacity: 0.8;
+                margin-bottom: 4px;
+            }
+
+            .info-value {
+                font-weight: 600;
+                font-size: 16px;
+            }
+
+            .content {
+                padding: 24px;
+            }
+
+            .word-group {
+                margin-bottom: 40px;
+            }
+
+            .word-group:first-child {
+                margin-top: 0;
+            }
+
+            .word-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 20px;
+                padding-bottom: 8px;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+            .word-info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .word-name {
+                font-size: 17px;
+                font-weight: 600;
+                color: #1a1a1a;
+            }
+
+            .word-count {
+                color: #666;
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            .word-count.hot { color: #dc2626; font-weight: 600; }
+            .word-count.warm { color: #ea580c; font-weight: 600; }
+
+            .word-index {
+                color: #999;
+                font-size: 12px;
+            }
+
+            .news-item {
+                margin-bottom: 20px;
+                padding: 16px 0;
+                border-bottom: 1px solid #f5f5f5;
+                position: relative;
                 display: flex;
                 gap: 12px;
-                align-items: flex-start;
-            }}
+                align-items: center;
+            }
 
-            .news-item:last-child {{
+            .news-item:last-child {
                 border-bottom: none;
-            }}
-            
-            .news-item:hover {{
-                background-color: #f9fafb;
-            }}
+            }
 
-            .news-index {{
-                color: #9ca3af;
-                font-size: 14px;
-                font-weight: 500;
+            .news-item.new::after {
+                content: "NEW";
+                position: absolute;
+                top: 12px;
+                right: 0;
+                background: #fbbf24;
+                color: #92400e;
+                font-size: 9px;
+                font-weight: 700;
+                padding: 3px 6px;
+                border-radius: 4px;
+                letter-spacing: 0.5px;
+            }
+
+            .news-number {
+                color: #999;
+                font-size: 13px;
+                font-weight: 600;
                 min-width: 20px;
-                padding-top: 2px;
-            }}
-
-            .news-content {{
-                flex: 1;
-            }}
-
-            .news-meta {{
+                text-align: center;
+                flex-shrink: 0;
+                background: #f8f9fa;
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
                 display: flex;
                 align-items: center;
-                flex-wrap: wrap;
-                gap: 8px;
-                margin-bottom: 4px;
-                font-size: 11px;
-            }}
+                justify-content: center;
+                align-self: flex-start;
+                margin-top: 8px;
+            }
 
-            .tag {{
+            .news-content {
+                flex: 1;
+                min-width: 0;
+                padding-right: 40px;
+            }
+
+            .news-item.new .news-content {
+                padding-right: 50px;
+            }
+
+            .news-header {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 8px;
+                flex-wrap: wrap;
+            }
+
+            .source-name {
+                color: #666;
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            .keyword-tag {
+                color: #2563eb;
+                font-size: 12px;
+                font-weight: 500;
+                background: #eff6ff;
                 padding: 2px 6px;
                 border-radius: 4px;
-                font-weight: 600;
-            }}
-            
-            .tag-source {{
-                background: #eff6ff;
-                color: #3b82f6;
-            }}
-            
-            .tag-new {{
-                background: #ecfdf5;
+            }
+
+            .rank-num {
+                color: #fff;
+                background: #6b7280;
+                font-size: 10px;
+                font-weight: 700;
+                padding: 2px 6px;
+                border-radius: 10px;
+                min-width: 18px;
+                text-align: center;
+            }
+
+            .rank-num.top { background: #dc2626; }
+            .rank-num.high { background: #ea580c; }
+
+            .time-info {
+                color: #999;
+                font-size: 11px;
+            }
+
+            .count-info {
                 color: #059669;
-                text-transform: uppercase;
-            }}
-            
-            .tag-time {{
-                color: #9ca3af;
-            }}
-
-            .news-link {{
-                color: var(--text-main);
-                text-decoration: none;
-                font-size: 14px;
+                font-size: 11px;
                 font-weight: 500;
-                line-height: 1.4;
-                display: block;
-                transition: color 0.2s;
-            }}
+            }
 
-            .news-link:hover {{
-                color: var(--accent-color);
-            }}
-            
-            /* 新闻摘要预览 */
-            .news-preview {{
-                margin-top: 8px;
-                padding: 8px 12px;
-                background: #f9fafb;
-                border-left: 3px solid #e5e7eb;
+            .news-title {
+                font-size: 15px;
+                line-height: 1.4;
+                color: #1a1a1a;
+                margin: 0;
+            }
+
+            .news-link {
+                color: #2563eb;
+                text-decoration: none;
+            }
+
+            .news-link:hover {
+                text-decoration: underline;
+            }
+
+            .news-link:visited {
+                color: #7c3aed;
+            }
+
+            .new-section {
+                margin-top: 40px;
+                padding-top: 24px;
+                border-top: 2px solid #f0f0f0;
+            }
+
+            .new-section-title {
+                color: #1a1a1a;
+                font-size: 16px;
+                font-weight: 600;
+                margin: 0 0 20px 0;
+            }
+
+            .new-source-group {
+                margin-bottom: 24px;
+            }
+
+            .new-source-title {
+                color: #666;
+                font-size: 13px;
+                font-weight: 500;
+                margin: 0 0 12px 0;
+                padding-bottom: 6px;
+                border-bottom: 1px solid #f5f5f5;
+            }
+
+            .new-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 8px 0;
+                border-bottom: 1px solid #f9f9f9;
+            }
+
+            .new-item:last-child {
+                border-bottom: none;
+            }
+
+            .new-item-number {
+                color: #999;
+                font-size: 12px;
+                font-weight: 600;
+                min-width: 18px;
+                text-align: center;
+                flex-shrink: 0;
+                background: #f8f9fa;
+                border-radius: 50%;
+                width: 20px;
+                height: 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .new-item-rank {
+                color: #fff;
+                background: #6b7280;
+                font-size: 10px;
+                font-weight: 700;
+                padding: 3px 6px;
+                border-radius: 8px;
+                min-width: 20px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+
+            .new-item-rank.top { background: #dc2626; }
+            .new-item-rank.high { background: #ea580c; }
+
+            .new-item-content {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .new-item-title {
+                font-size: 14px;
+                line-height: 1.4;
+                color: #1a1a1a;
+                margin: 0;
+            }
+
+            .error-section {
+                background: #fef2f2;
+                border: 1px solid #fecaca;
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 24px;
+            }
+
+            .error-title {
+                color: #dc2626;
+                font-size: 14px;
+                font-weight: 600;
+                margin: 0 0 8px 0;
+            }
+
+            .error-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .error-item {
+                color: #991b1b;
+                font-size: 13px;
+                padding: 2px 0;
+                font-family: 'SF Mono', Consolas, monospace;
+            }
+
+            .footer {
+                margin-top: 32px;
+                padding: 20px 24px;
+                background: #f8f9fa;
+                border-top: 1px solid #e5e7eb;
+                text-align: center;
+            }
+
+            .footer-content {
+                font-size: 13px;
+                color: #6b7280;
+                line-height: 1.6;
+            }
+
+            .footer-link {
+                color: #4f46e5;
+                text-decoration: none;
+                font-weight: 500;
+                transition: color 0.2s ease;
+            }
+
+            .footer-link:hover {
+                color: #7c3aed;
+                text-decoration: underline;
+            }
+
+            .project-name {
+                font-weight: 600;
+                color: #374151;
+            }
+
+            @media (max-width: 480px) {
+                body { padding: 12px; }
+                .header { padding: 24px 20px; }
+                .content { padding: 20px; }
+                .footer { padding: 16px 20px; }
+                .header-info { grid-template-columns: 1fr; gap: 12px; }
+                .news-header { gap: 6px; }
+                .news-content { padding-right: 45px; }
+                .news-item { gap: 8px; }
+                .new-item { gap: 8px; }
+                .news-number { width: 20px; height: 20px; font-size: 12px; }
+                .save-buttons {
+                    position: static;
+                    margin-bottom: 16px;
+                    display: flex;
+                    gap: 8px;
+                    justify-content: center;
+                    flex-direction: column;
+                    width: 100%;
+                }
+                .save-btn {
+                    width: 100%;
+                }
+            }
+
+            /* RSS 订阅内容样式 */
+            .rss-section {
+                margin-top: 32px;
+                padding-top: 24px;
+                border-top: 2px solid #e5e7eb;
+            }
+
+            .rss-section-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 20px;
+            }
+
+            .rss-section-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: #059669;
+            }
+
+            .rss-section-count {
+                color: #6b7280;
+                font-size: 14px;
+            }
+
+            .feed-group {
+                margin-bottom: 24px;
+            }
+
+            .feed-group:last-child {
+                margin-bottom: 0;
+            }
+
+            .feed-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 12px;
+                padding-bottom: 8px;
+                border-bottom: 2px solid #10b981;
+            }
+
+            .feed-name {
+                font-size: 15px;
+                font-weight: 600;
+                color: #059669;
+            }
+
+            .feed-count {
+                color: #666;
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            .rss-item {
+                margin-bottom: 12px;
+                padding: 14px;
+                background: #f0fdf4;
+                border-radius: 8px;
+                border-left: 3px solid #10b981;
+            }
+
+            .rss-item:last-child {
+                margin-bottom: 0;
+            }
+
+            .rss-meta {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 6px;
+                flex-wrap: wrap;
+            }
+
+            .rss-time {
+                color: #6b7280;
+                font-size: 12px;
+            }
+
+            .rss-author {
+                color: #059669;
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            .rss-title {
+                font-size: 14px;
+                line-height: 1.5;
+                margin-bottom: 6px;
+            }
+
+            .rss-link {
+                color: #1f2937;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+            .rss-link:hover {
+                color: #059669;
+                text-decoration: underline;
+            }
+
+            .rss-summary {
                 font-size: 13px;
                 color: #6b7280;
                 line-height: 1.5;
-                border-radius: 4px;
-                display: none;
-            }}
-
-            .news-item.show-preview .news-preview {{
-                display: block;
-            }}
-
-            .preview-toggle {{
-                font-size: 11px;
-                color: #3b82f6;
-                cursor: pointer;
-                margin-top: 4px;
-                display: inline-block;
-            }}
-
-            .preview-toggle:hover {{
-                text-decoration: underline;
-            }}
-            
-            .rank-indicator {{
-                display: inline-block;
-                width: 6px;
-                height: 6px;
-                border-radius: 50%;
-                background-color: #d1d5db;
-                margin-right: 4px;
-            }}
-            
-            .rank-indicator.top {{ background-color: #ef4444; }}
-            .rank-indicator.high {{ background-color: #f97316; }}
-
-            /* New Section Special Style */
-            .new-section-card .card-header {{
-                background: #ecfdf5;
-                border-bottom: 1px solid #d1fae5;
-            }}
-            
-            .new-section-card .topic-title {{
-                color: #065f46;
-            }}
-
-            /* Error Section */
-            .error-card {{
-                background: #fff5f5;
-                border: 1px solid #feb2b2;
-                padding: 16px;
-                margin-bottom: 24px;
-                border-radius: 8px;
-                color: #c53030;
-            }}
-
-            /* Footer */
-            .footer {{
-                text-align: center;
-                padding: 40px 0;
-                color: var(--text-sub);
-                font-size: 13px;
-            }}
-
-            .footer a {{
-                color: var(--text-sub);
-                text-decoration: none;
-                border-bottom: 1px dotted #9ca3af;
-            }}
-
-            @media (max-width: 600px) {{
-                body {{ padding: 12px; }}
-                .dashboard-header {{ padding: 20px; border-radius: 12px; }}
-                .stats-row {{ grid-template-columns: 1fr 1fr; gap: 16px; }}
-                .header-top {{ flex-direction: column; gap: 16px; }}
-                .action-buttons {{ width: 100%; }}
-                .btn {{ flex: 1; text-align: center; }}
-                .charts-section {{ grid-template-columns: 1fr; }}
-            }}
+                margin: 0;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
         </style>
     </head>
     <body>
-        <div class="container" id="capture-container">
-            <!-- Header -->
-            <div class="dashboard-header">
-                <div class="header-top">
-                    <div class="brand-section">
-                        <h1>TrendRadar</h1>
-                        <p>全网热点聚合分析报告</p>
-                    </div>
-                    <div class="action-buttons" data-html2canvas-ignore>
-                        <div class="btn" onclick="saveAsImage()">保存图片</div>
-                        <div class="btn" onclick="saveAsMultipleImages()">分段保存</div>
-                    </div>
-                    </div>
-                
-                <div class="stats-row">
-                    <div class="stat-card">
-                        <span class="stat-label">新闻总数</span>
-                        <span class="stat-value">{total_titles}<span class="stat-sub">条</span></span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">热点话题</span>
-                        <span class="stat-value">{topic_count}<span class="stat-sub">个</span></span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">报告类型</span>
-                        <span class="stat-value" style="font-size: 20px;">{report_type_text}</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">生成时间</span>
-                        <span class="stat-value" style="font-size: 20px;">{now.strftime("%H:%M")}</span>
-                    </div>
+        <div class="container">
+            <div class="header">
+                <div class="save-buttons">
+                    <button class="save-btn" onclick="saveAsImage()">保存为图片</button>
+                    <button class="save-btn" onclick="saveAsMultipleImages()">分段保存</button>
                 </div>
+                <div class="header-title">热点新闻分析</div>
+                <div class="header-info">
+                    <div class="info-item">
+                        <span class="info-label">报告类型</span>
+                        <span class="info-value">"""
 
-                <!-- 数据可视化 -->
-                <div class="charts-section">
-                    <div class="chart-container">
-                        <div class="chart-title">📊 热度趋势</div>
-                        <div class="chart-wrapper">
-                            <canvas id="trendChart"></canvas>
-                        </div>
+    # 处理报告类型显示
+    if is_daily_summary:
+        if mode == "current":
+            html += "当前榜单"
+        elif mode == "incremental":
+            html += "增量模式"
+        else:
+            html += "当日汇总"
+    else:
+        html += "实时分析"
+
+    html += """</span>
                     </div>
-                    <div class="chart-container">
-                        <div class="chart-title">📱 平台分布</div>
-                        <div class="chart-wrapper">
-                            <canvas id="platformChart"></canvas>
-                        </div>
+                    <div class="info-item">
+                        <span class="info-label">新闻总数</span>
+                        <span class="info-value">"""
+
+    html += f"{total_titles} 条"
+
+    # 计算筛选后的热点新闻数量
+    hot_news_count = sum(len(stat["titles"]) for stat in report_data["stats"])
+
+    html += """</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">热点新闻</span>
+                        <span class="info-value">"""
+
+    html += f"{hot_news_count} 条"
+
+    html += """</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">生成时间</span>
+                        <span class="info-value">"""
+
+    # 使用提供的时间函数或默认 datetime.now
+    if get_time_func:
+        now = get_time_func()
+    else:
+        now = datetime.now()
+    html += now.strftime("%m-%d %H:%M")
+
+    html += """</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Error Display -->
-            """
+            <div class="content">"""
 
+    # 处理失败ID错误信息
     if report_data["failed_ids"]:
         html += """
-            <div class="error-card">
-                <strong>⚠️ 部分平台获取失败：</strong>
-                """ + ", ".join(html_escape(fid) for fid in report_data["failed_ids"]) + """
-                        </div>
-        """
+                <div class="error-section">
+                    <div class="error-title">⚠️ 请求失败的平台</div>
+                    <ul class="error-list">"""
+        for id_value in report_data["failed_ids"]:
+            html += f'<li class="error-item">{html_escape(id_value)}</li>'
+        html += """
+                    </ul>
+                </div>"""
 
-    html += """
-            <!-- Content Grid -->
-            <div class="masonry-grid">
-    """
+    # 生成热点词汇统计部分的HTML
+    stats_html = ""
+    if report_data["stats"]:
+        total_count = len(report_data["stats"])
 
-    # --- 1. 新增热点卡片 ---
-    new_section_html = ""
-    if report_data["new_titles"]:
-        new_section_html = f"""
-            <div class="card new-section-card">
-                <div class="card-header new-section" onclick="toggleCard(this)">
-                    <div class="topic-title">
-                        ⚡ 本次新增
-                            </div>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span class="topic-count">{report_data['total_new_count']} 条</span>
-                        <span class="expand-icon">▼</span>
-                            </div>
+        for i, stat in enumerate(report_data["stats"], 1):
+            count = stat["count"]
+
+            # 确定热度等级
+            if count >= 10:
+                count_class = "hot"
+            elif count >= 5:
+                count_class = "warm"
+            else:
+                count_class = ""
+
+            escaped_word = html_escape(stat["word"])
+
+            stats_html += f"""
+                <div class="word-group">
+                    <div class="word-header">
+                        <div class="word-info">
+                            <div class="word-name">{escaped_word}</div>
+                            <div class="word-count {count_class}">{count} 条</div>
                         </div>
-                <div class="news-list">
-        """
-        
-        idx_counter = 1
-        for source_data in report_data["new_titles"]:
-            source_name = html_escape(source_data["source_name"])
-            
-            for title_data in source_data["titles"]:
-                title = html_escape(title_data["title"])
-                url = title_data.get("mobile_url") or title_data.get("url", "")
-                
+                        <div class="word-index">{i}/{total_count}</div>
+                    </div>"""
+
+            # 处理每个词组下的新闻标题，给每条新闻标上序号
+            for j, title_data in enumerate(stat["titles"], 1):
+                is_new = title_data.get("is_new", False)
+                new_class = "new" if is_new else ""
+
+                stats_html += f"""
+                    <div class="news-item {new_class}">
+                        <div class="news-number">{j}</div>
+                        <div class="news-content">
+                            <div class="news-header">"""
+
+                # 根据 display_mode 决定显示来源还是关键词
+                if display_mode == "keyword":
+                    # keyword 模式：显示来源
+                    stats_html += f'<span class="source-name">{html_escape(title_data["source_name"])}</span>'
+                else:
+                    # platform 模式：显示关键词
+                    matched_keyword = title_data.get("matched_keyword", "")
+                    if matched_keyword:
+                        stats_html += f'<span class="keyword-tag">[{html_escape(matched_keyword)}]</span>'
+
+                # 处理排名显示
                 ranks = title_data.get("ranks", [])
+                if ranks:
+                    min_rank = min(ranks)
+                    max_rank = max(ranks)
+                    rank_threshold = title_data.get("rank_threshold", 10)
+
+                    # 确定排名等级
+                    if min_rank <= 3:
+                        rank_class = "top"
+                    elif min_rank <= rank_threshold:
+                        rank_class = "high"
+                    else:
+                        rank_class = ""
+
+                    if min_rank == max_rank:
+                        rank_text = str(min_rank)
+                    else:
+                        rank_text = f"{min_rank}-{max_rank}"
+
+                    stats_html += f'<span class="rank-num {rank_class}">{rank_text}</span>'
+
+                # 处理时间显示
+                time_display = title_data.get("time_display", "")
+                if time_display:
+                    # 简化时间显示格式，将波浪线替换为~
+                    simplified_time = (
+                        time_display.replace(" ~ ", "~")
+                        .replace("[", "")
+                        .replace("]", "")
+                    )
+                    stats_html += (
+                        f'<span class="time-info">{html_escape(simplified_time)}</span>'
+                    )
+
+                # 处理出现次数
+                count_info = title_data.get("count", 1)
+                if count_info > 1:
+                    stats_html += f'<span class="count-info">{count_info}次</span>'
+
+                stats_html += """
+                            </div>
+                            <div class="news-title">"""
+
+                # 处理标题和链接
+                escaped_title = html_escape(title_data["title"])
+                link_url = title_data.get("mobile_url") or title_data.get("url", "")
+
+                if link_url:
+                    escaped_url = html_escape(link_url)
+                    stats_html += f'<a href="{escaped_url}" target="_blank" class="news-link">{escaped_title}</a>'
+                else:
+                    stats_html += escaped_title
+
+                stats_html += """
+                            </div>
+                        </div>
+                    </div>"""
+
+            stats_html += """
+                </div>"""
+
+    # 生成新增新闻区域的HTML
+    new_titles_html = ""
+    if report_data["new_titles"]:
+        new_titles_html += f"""
+                <div class="new-section">
+                    <div class="new-section-title">本次新增热点 (共 {report_data['total_new_count']} 条)</div>"""
+
+        for source_data in report_data["new_titles"]:
+            escaped_source = html_escape(source_data["source_name"])
+            titles_count = len(source_data["titles"])
+
+            new_titles_html += f"""
+                    <div class="new-source-group">
+                        <div class="new-source-title">{escaped_source} · {titles_count}条</div>"""
+
+            # 为新增新闻也添加序号
+            for idx, title_data in enumerate(source_data["titles"], 1):
+                ranks = title_data.get("ranks", [])
+
+                # 处理新增新闻的排名显示
                 rank_class = ""
                 if ranks:
                     min_rank = min(ranks)
-                    if min_rank <= 3: rank_class = "top"
-                    elif min_rank <= 10: rank_class = "high"
-                
-                new_section_html += f"""
-                    <div class="news-item">
-                        <div class="news-index">{idx_counter}</div>
-                        <div class="news-content">
-                            <div class="news-meta">
-                                <span class="tag tag-source">{source_name}</span>
-                                <span class="rank-indicator {rank_class}"></span>
-                            </div>
-                            <a href="{html_escape(url) if url else 'javascript:void(0)'}" 
-                               class="news-link" target="_blank">{title}</a>
-                            <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
-                            <div class="news-preview">
-                                📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
-                            </div>
-                        </div>
-                    </div>
-                """
-                idx_counter += 1
-                
-        new_section_html += """
+                    if min_rank <= 3:
+                        rank_class = "top"
+                    elif min_rank <= title_data.get("rank_threshold", 10):
+                        rank_class = "high"
+
+                    if len(ranks) == 1:
+                        rank_text = str(ranks[0])
+                    else:
+                        rank_text = f"{min(ranks)}-{max(ranks)}"
+                else:
+                    rank_text = "?"
+
+                new_titles_html += f"""
+                        <div class="new-item">
+                            <div class="new-item-number">{idx}</div>
+                            <div class="new-item-rank {rank_class}">{rank_text}</div>
+                            <div class="new-item-content">
+                                <div class="new-item-title">"""
+
+                # 处理新增新闻的链接
+                escaped_title = html_escape(title_data["title"])
+                link_url = title_data.get("mobile_url") or title_data.get("url", "")
+
+                if link_url:
+                    escaped_url = html_escape(link_url)
+                    new_titles_html += f'<a href="{escaped_url}" target="_blank" class="news-link">{escaped_title}</a>'
+                else:
+                    new_titles_html += escaped_title
+
+                new_titles_html += """
                                 </div>
                             </div>
-        """
+                        </div>"""
 
-    # --- 2. 热点词汇卡片 ---
-    stats_section_html = ""
-    for idx, stat in enumerate(report_data["stats"]):
-        word = html_escape(stat["word"])
-        count = stat["count"]
-        
-        # 拆分标题：如果包含 === 分隔符，提取主标题和关键词
-        main_title = word
-        keywords = ""
-        if "===" in word:
-            parts = word.split("===")
-            if len(parts) >= 2:
-                main_title = parts[1].strip()
-                # 获取第三部分作为关键词（如果存在）
-                if len(parts) >= 3:
-                    keywords = parts[2].strip()
-        
-        header_class = "normal"
-        count_class = "normal"
-        if count >= 10:
-            header_class = "hot"
-            count_class = "hot"
-        elif count >= 5:
-            header_class = "warm"
-        
-        stats_section_html += f"""
-            <div class="card">
-                <div class="card-header {header_class}" onclick="toggleCard(this)">
-                    <div class="topic-title">
-                        <div class="topic-main">{main_title}</div>
-                        {f'<div class="topic-keywords">{keywords}</div>' if keywords else ''}
-            </div>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span class="topic-count {count_class}">{count} 条</span>
-                        <span class="expand-icon">▼</span>
+            new_titles_html += """
+                    </div>"""
+
+        new_titles_html += """
+                </div>"""
+
+    # 生成 RSS 统计内容
+    def render_rss_stats_html(stats: List[Dict], title: str = "RSS 订阅更新") -> str:
+        """渲染 RSS 统计区块 HTML
+
+        Args:
+            stats: RSS 分组统计列表，格式与热榜一致：
+                [
+                    {
+                        "word": "关键词",
+                        "count": 5,
+                        "titles": [
+                            {
+                                "title": "标题",
+                                "source_name": "Feed 名称",
+                                "time_display": "12-29 08:20",
+                                "url": "...",
+                                "is_new": True/False
+                            }
+                        ]
+                    }
+                ]
+            title: 区块标题
+
+        Returns:
+            渲染后的 HTML 字符串
+        """
+        if not stats:
+            return ""
+
+        # 计算总条目数
+        total_count = sum(stat.get("count", 0) for stat in stats)
+        if total_count == 0:
+            return ""
+
+        rss_html = f"""
+                <div class="rss-section">
+                    <div class="rss-section-header">
+                        <div class="rss-section-title">{title}</div>
+                        <div class="rss-section-count">{total_count} 条</div>
+                    </div>"""
+
+        # 按关键词分组渲染（与热榜格式一致）
+        for stat in stats:
+            keyword = stat.get("word", "")
+            titles = stat.get("titles", [])
+            if not titles:
+                continue
+
+            keyword_count = len(titles)
+
+            rss_html += f"""
+                    <div class="feed-group">
+                        <div class="feed-header">
+                            <div class="feed-name">{html_escape(keyword)}</div>
+                            <div class="feed-count">{keyword_count} 条</div>
+                        </div>"""
+
+            for title_data in titles:
+                item_title = title_data.get("title", "")
+                url = title_data.get("url", "")
+                time_display = title_data.get("time_display", "")
+                source_name = title_data.get("source_name", "")
+                is_new = title_data.get("is_new", False)
+
+                rss_html += """
+                        <div class="rss-item">
+                            <div class="rss-meta">"""
+
+                if time_display:
+                    rss_html += f'<span class="rss-time">{html_escape(time_display)}</span>'
+
+                if source_name:
+                    rss_html += f'<span class="rss-author">{html_escape(source_name)}</span>'
+
+                if is_new:
+                    rss_html += '<span class="rss-author" style="color: #dc2626;">NEW</span>'
+
+                rss_html += """
                             </div>
-                        </div>
-                <div class="news-list">
-        """
-        
-        # 排序：优先按热度（hotness），其次按时间（时间越新越靠前）
-        sorted_titles = sorted(
-            stat["titles"],
-            key=lambda x: (
-                -(x.get("hotness", 0) or 0),  # 热度降序（负号表示从高到低）
-                -(x.get("timestamp", 0) or 0)  # 时间降序（越新越靠前）
-            )
-        )
-        
-        for idx, title_data in enumerate(sorted_titles, 1):
-            title = html_escape(title_data["title"])
-            source = html_escape(title_data["source_name"])
-            url = title_data.get("mobile_url") or title_data.get("url", "")
-            is_new = title_data.get("is_new", False)
-            
-            time_display = title_data.get("time_display", "")
-            if time_display:
-                # 清理时间显示格式：[10:49 ~ 19:16] -> 10:49-19:16
-                time_display = time_display.replace("[", "").replace("]", "").replace(" ~ ", "-").strip()
-            
-            stats_section_html += f"""
-                <div class="news-item">
-                    <div class="news-index">{idx}</div>
-                    <div class="news-content">
-                        <div class="news-meta">
-                            <span class="tag tag-source">{source}</span>
-                            {f'<span class="tag tag-new">NEW</span>' if is_new else ''}
-                            {f'<span class="tag tag-time">{html_escape(time_display)}</span>' if time_display else ''}
-                </div>
-                        <a href="{html_escape(url) if url else 'javascript:void(0)'}" 
-                           class="news-link" target="_blank">{title}</a>
-                        <div class="preview-toggle" onclick="togglePreview(this)">💡 说明</div>
-                        <div class="news-preview">
-                            📌 本项目抓取各平台热榜数据，仅包含标题和链接。点击标题可跳转到原文查看完整内容。
+                            <div class="rss-title">"""
+
+                escaped_title = html_escape(item_title)
+                if url:
+                    escaped_url = html_escape(url)
+                    rss_html += f'<a href="{escaped_url}" target="_blank" class="rss-link">{escaped_title}</a>'
+                else:
+                    rss_html += escaped_title
+
+                rss_html += """
+                            </div>
+                        </div>"""
+
+            rss_html += """
+                    </div>"""
+
+        rss_html += """
+                </div>"""
+        return rss_html
+
+    # 生成 RSS 统计和新增 HTML
+    rss_stats_html = render_rss_stats_html(rss_items, "RSS 订阅更新") if rss_items else ""
+    rss_new_html = render_rss_stats_html(rss_new_items, "RSS 新增更新") if rss_new_items else ""
+
+    # 根据配置决定内容顺序（与推送逻辑一致）
+    if reverse_content_order:
+        # 新增在前，统计在后
+        # 顺序：热榜新增 → RSS新增 → 热榜统计 → RSS统计
+        html += new_titles_html + rss_new_html + stats_html + rss_stats_html
+    else:
+        # 默认：统计在前，新增在后
+        # 顺序：热榜统计 → RSS统计 → 热榜新增 → RSS新增
+        html += stats_html + rss_stats_html + new_titles_html + rss_new_html
+
+    html += """
             </div>
-        </div>
-                </div>
-            """
-            
-        stats_section_html += """
-                </div>
-            </div>
-        """
-        
-        # 在第2个卡片后插入新增卡片（3列布局时会在第一行第3列）
-        if idx == 1 and new_section_html:
-            stats_section_html += new_section_html
-            new_section_html = ""  # 标记已添加
-
-    # 如果新增卡片还没添加（stats少于2个），添加到最后
-    html += stats_section_html
-    if new_section_html:
-        html += new_section_html
-
-    # 准备图表数据
-    topic_labels = []
-    topic_counts = []
-    for stat in report_data["stats"][:8]:
-        word = stat["word"]
-        # 提取主标题（如果有===分隔符）
-        if "===" in word:
-            parts = word.split("===")
-            if len(parts) >= 2:
-                word = parts[1].strip()
-        # 截取长度
-        if len(word) > 8:
-            word = word[:8] + "..."
-        topic_labels.append(word)
-        topic_counts.append(stat["count"])
-    
-    platform_labels = list(platform_stats.keys())[:6]  # 最多6个平台
-    platform_counts = [platform_stats[k] for k in platform_labels]
-
-    # 生成footer
-    footer_html = f"""
-            </div> <!-- End Masonry Grid -->
 
             <div class="footer">
-                <p>
-                    生成于 {now.strftime("%Y-%m-%d %H:%M:%S")}
-                </p>
-    """
+                <div class="footer-content">
+                    由 <span class="project-name">TrendRadar</span> 生成 ·
+                    <a href="https://github.com/sansan0/TrendRadar" target="_blank" class="footer-link">
+                        GitHub 开源项目
+                    </a>"""
+
     if update_info:
-        footer_html += f"""
-                <p class="update-info">发现新版本 {update_info["remote_version"]}</p>
-    """
-    footer_html += """
+        html += f"""
+                    <br>
+                    <span style="color: #ea580c; font-weight: 500;">
+                        发现新版本 {update_info['remote_version']}，当前版本 {update_info['current_version']}
+                    </span>"""
+
+    html += """
+                </div>
             </div>
         </div>
-    """
-    
-    html += footer_html
-    
-    # 转换为JSON格式
-    import json
-    topic_labels_json = json.dumps(topic_labels, ensure_ascii=False)
-    topic_counts_json = json.dumps(topic_counts)
-    platform_labels_json = json.dumps(platform_labels, ensure_ascii=False)
-    platform_counts_json = json.dumps(platform_counts)
-    
-    html += f"""
+
         <script>
-            // 卡片展开/收起
-            function toggleCard(header) {{
-                const card = header.closest('.card');
-                card.classList.toggle('collapsed');
-            }}
+            async function saveAsImage() {
+                const button = event.target;
+                const originalText = button.textContent;
 
-            // 新闻说明展开/收起
-            function togglePreview(btn) {{
-                const newsItem = btn.closest('.news-item');
-                newsItem.classList.toggle('show-preview');
-                btn.textContent = newsItem.classList.contains('show-preview') 
-                    ? '收起 ▲' 
-                    : '💡 说明';
-            }}
+                try {
+                    button.textContent = '生成中...';
+                    button.disabled = true;
+                    window.scrollTo(0, 0);
 
-            // 初始化图表
-            document.addEventListener('DOMContentLoaded', function() {{
-                // 默认折叠所有卡片（显示前3条新闻）
-                document.querySelectorAll('.card').forEach(card => {{
-                    const newsItems = card.querySelectorAll('.news-item');
-                    if (newsItems.length > 3) {{
-                        card.classList.add('collapsed');
-                    }}
-                }});
+                    // 等待页面稳定
+                    await new Promise(resolve => setTimeout(resolve, 200));
 
-                // 热度趋势图
-                const trendCtx = document.getElementById('trendChart').getContext('2d');
-                new Chart(trendCtx, {{
-                    type: 'bar',
-                    data: {{
-                        labels: {topic_labels_json},
-                        datasets: [{{
-                            label: '新闻数量',
-                            data: {topic_counts_json},
-                            backgroundColor: 'rgba(59, 130, 246, 0.6)',
-                            borderColor: 'rgba(59, 130, 246, 1)',
-                            borderWidth: 2,
-                            borderRadius: 6
-                        }}]
-                    }},
-                    options: {{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {{
-                            legend: {{ display: false }},
-                            tooltip: {{
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                padding: 12,
-                                titleColor: '#fff',
-                                bodyColor: '#fff'
-                            }}
-                        }},
-                        scales: {{
-                            y: {{
-                                beginAtZero: true,
-                                ticks: {{ 
-                                    color: 'rgba(255,255,255,0.6)',
-                                    precision: 0
-                                }},
-                                grid: {{ color: 'rgba(255,255,255,0.1)' }}
-                            }},
-                            x: {{
-                                ticks: {{ 
-                                    color: 'rgba(255,255,255,0.6)',
-                                    maxRotation: 45,
-                                    minRotation: 45,
-                                    autoSkip: false
-                                }},
-                                grid: {{ display: false }}
-                            }}
-                        }}
-                    }}
-                }});
+                    // 截图前隐藏按钮
+                    const buttons = document.querySelector('.save-buttons');
+                    buttons.style.visibility = 'hidden';
 
-                // 平台分布图
-                const platformCtx = document.getElementById('platformChart').getContext('2d');
-                new Chart(platformCtx, {{
-                    type: 'doughnut',
-                    data: {{
-                        labels: {platform_labels_json},
-                        datasets: [{{
-                            data: {platform_counts_json},
-                            backgroundColor: [
-                                'rgba(59, 130, 246, 0.8)',
-                                'rgba(16, 185, 129, 0.8)',
-                                'rgba(245, 158, 11, 0.8)',
-                                'rgba(239, 68, 68, 0.8)',
-                                'rgba(139, 92, 246, 0.8)',
-                                'rgba(236, 72, 153, 0.8)'
-                            ],
-                            borderWidth: 0
-                        }}]
-                    }},
-                    options: {{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {{
-                            legend: {{
-                                position: 'bottom',
-                                labels: {{
-                                    color: 'rgba(255,255,255,0.8)',
-                                    padding: 10,
-                                    font: {{ size: 11 }}
-                                }}
-                            }},
-                            tooltip: {{
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                padding: 12
-                            }}
-                        }}
-                    }}
-                }});
-            }});
+                    // 再次等待确保按钮完全隐藏
+                    await new Promise(resolve => setTimeout(resolve, 100));
 
-            // 截图功能
-            async function saveAsImage() {{
-                const btn = event.target;
-                const originalText = btn.textContent;
-                btn.textContent = '生成中...';
-                
-                try {{
-                    const container = document.getElementById('capture-container');
-                    const canvas = await html2canvas(container, {{
-                        scale: 2,
-                        backgroundColor: '#f0f2f5',
+                    const container = document.querySelector('.container');
+
+                    const canvas = await html2canvas(container, {
+                        backgroundColor: '#ffffff',
+                        scale: 1.5,
+                        useCORS: true,
+                        allowTaint: false,
+                        imageTimeout: 10000,
+                        removeContainer: false,
+                        foreignObjectRendering: false,
+                        logging: false,
+                        width: container.offsetWidth,
+                        height: container.offsetHeight,
+                        x: 0,
+                        y: 0,
+                        scrollX: 0,
+                        scrollY: 0,
+                        windowWidth: window.innerWidth,
+                        windowHeight: window.innerHeight
+                    });
+
+                    buttons.style.visibility = 'visible';
+
+                    const link = document.createElement('a');
+                    const now = new Date();
+                    const filename = `TrendRadar_热点新闻分析_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}.png`;
+
+                    link.download = filename;
+                    link.href = canvas.toDataURL('image/png', 1.0);
+
+                    // 触发下载
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    button.textContent = '保存成功!';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                    }, 2000);
+
+                } catch (error) {
+                    const buttons = document.querySelector('.save-buttons');
+                    buttons.style.visibility = 'visible';
+                    button.textContent = '保存失败';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                    }, 2000);
+                }
+            }
+
+            async function saveAsMultipleImages() {
+                const button = event.target;
+                const originalText = button.textContent;
+                const container = document.querySelector('.container');
+                const scale = 1.5;
+                const maxHeight = 5000 / scale;
+
+                try {
+                    button.textContent = '分析中...';
+                    button.disabled = true;
+
+                    // 获取所有可能的分割元素
+                    const newsItems = Array.from(container.querySelectorAll('.news-item'));
+                    const wordGroups = Array.from(container.querySelectorAll('.word-group'));
+                    const newSection = container.querySelector('.new-section');
+                    const errorSection = container.querySelector('.error-section');
+                    const header = container.querySelector('.header');
+                    const footer = container.querySelector('.footer');
+
+                    // 计算元素位置和高度
+                    const containerRect = container.getBoundingClientRect();
+                    const elements = [];
+
+                    // 添加header作为必须包含的元素
+                    elements.push({
+                        type: 'header',
+                        element: header,
+                        top: 0,
+                        bottom: header.offsetHeight,
+                        height: header.offsetHeight
+                    });
+
+                    // 添加错误信息（如果存在）
+                    if (errorSection) {
+                        const rect = errorSection.getBoundingClientRect();
+                        elements.push({
+                            type: 'error',
+                            element: errorSection,
+                            top: rect.top - containerRect.top,
+                            bottom: rect.bottom - containerRect.top,
+                            height: rect.height
+                        });
+                    }
+
+                    // 按word-group分组处理news-item
+                    wordGroups.forEach(group => {
+                        const groupRect = group.getBoundingClientRect();
+                        const groupNewsItems = group.querySelectorAll('.news-item');
+
+                        // 添加word-group的header部分
+                        const wordHeader = group.querySelector('.word-header');
+                        if (wordHeader) {
+                            const headerRect = wordHeader.getBoundingClientRect();
+                            elements.push({
+                                type: 'word-header',
+                                element: wordHeader,
+                                parent: group,
+                                top: groupRect.top - containerRect.top,
+                                bottom: headerRect.bottom - containerRect.top,
+                                height: headerRect.height
+                            });
+                        }
+
+                        // 添加每个news-item
+                        groupNewsItems.forEach(item => {
+                            const rect = item.getBoundingClientRect();
+                            elements.push({
+                                type: 'news-item',
+                                element: item,
+                                parent: group,
+                                top: rect.top - containerRect.top,
+                                bottom: rect.bottom - containerRect.top,
+                                height: rect.height
+                            });
+                        });
+                    });
+
+                    // 添加新增新闻部分
+                    if (newSection) {
+                        const rect = newSection.getBoundingClientRect();
+                        elements.push({
+                            type: 'new-section',
+                            element: newSection,
+                            top: rect.top - containerRect.top,
+                            bottom: rect.bottom - containerRect.top,
+                            height: rect.height
+                        });
+                    }
+
+                    // 添加footer
+                    const footerRect = footer.getBoundingClientRect();
+                    elements.push({
+                        type: 'footer',
+                        element: footer,
+                        top: footerRect.top - containerRect.top,
+                        bottom: footerRect.bottom - containerRect.top,
+                        height: footer.offsetHeight
+                    });
+
+                    // 计算分割点
+                    const segments = [];
+                    let currentSegment = { start: 0, end: 0, height: 0, includeHeader: true };
+                    let headerHeight = header.offsetHeight;
+                    currentSegment.height = headerHeight;
+
+                    for (let i = 1; i < elements.length; i++) {
+                        const element = elements[i];
+                        const potentialHeight = element.bottom - currentSegment.start;
+
+                        // 检查是否需要创建新分段
+                        if (potentialHeight > maxHeight && currentSegment.height > headerHeight) {
+                            // 在前一个元素结束处分割
+                            currentSegment.end = elements[i - 1].bottom;
+                            segments.push(currentSegment);
+
+                            // 开始新分段
+                            currentSegment = {
+                                start: currentSegment.end,
+                                end: 0,
+                                height: element.bottom - currentSegment.end,
+                                includeHeader: false
+                            };
+                        } else {
+                            currentSegment.height = potentialHeight;
+                            currentSegment.end = element.bottom;
+                        }
+                    }
+
+                    // 添加最后一个分段
+                    if (currentSegment.height > 0) {
+                        currentSegment.end = container.offsetHeight;
+                        segments.push(currentSegment);
+                    }
+
+                    button.textContent = `生成中 (0/${segments.length})...`;
+
+                    // 隐藏保存按钮
+                    const buttons = document.querySelector('.save-buttons');
+                    buttons.style.visibility = 'hidden';
+
+                    // 为每个分段生成图片
+                    const images = [];
+                    for (let i = 0; i < segments.length; i++) {
+                        const segment = segments[i];
+                        button.textContent = `生成中 (${i + 1}/${segments.length})...`;
+
+                        // 创建临时容器用于截图
+                        const tempContainer = document.createElement('div');
+                        tempContainer.style.cssText = `
+                            position: absolute;
+                            left: -9999px;
+                            top: 0;
+                            width: ${container.offsetWidth}px;
+                            background: white;
+                        `;
+                        tempContainer.className = 'container';
+
+                        // 克隆容器内容
+                        const clonedContainer = container.cloneNode(true);
+
+                        // 移除克隆内容中的保存按钮
+                        const clonedButtons = clonedContainer.querySelector('.save-buttons');
+                        if (clonedButtons) {
+                            clonedButtons.style.display = 'none';
+                        }
+
+                        tempContainer.appendChild(clonedContainer);
+                        document.body.appendChild(tempContainer);
+
+                        // 等待DOM更新
+                        await new Promise(resolve => setTimeout(resolve, 100));
+
+                        // 使用html2canvas截取特定区域
+                        const canvas = await html2canvas(clonedContainer, {
+                            backgroundColor: '#ffffff',
+                            scale: scale,
                             useCORS: true,
-                        logging: false
-                    }});
+                            allowTaint: false,
+                            imageTimeout: 10000,
+                            logging: false,
+                            width: container.offsetWidth,
+                            height: segment.end - segment.start,
+                            x: 0,
+                            y: segment.start,
+                            windowWidth: window.innerWidth,
+                            windowHeight: window.innerHeight
+                        });
 
+                        images.push(canvas.toDataURL('image/png', 1.0));
+
+                        // 清理临时容器
+                        document.body.removeChild(tempContainer);
+                    }
+
+                    // 恢复按钮显示
+                    buttons.style.visibility = 'visible';
+
+                    // 下载所有图片
+                    const now = new Date();
+                    const baseFilename = `TrendRadar_热点新闻分析_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+
+                    for (let i = 0; i < images.length; i++) {
                         const link = document.createElement('a');
-                    link.download = 'TrendRadar_Report_{now.strftime("%Y%m%d_%H%M")}.png';
-                    link.href = canvas.toDataURL('image/png');
+                        link.download = `${baseFilename}_part${i + 1}.png`;
+                        link.href = images[i];
+                        document.body.appendChild(link);
                         link.click();
-                    
-                    btn.textContent = '已保存';
-                }} catch (e) {{
-                    console.error(e);
-                    btn.textContent = '失败';
-                }}
-                
-                setTimeout(() => btn.textContent = originalText, 2000);
-            }}
+                        document.body.removeChild(link);
 
-            async function saveAsMultipleImages() {{
-                alert('建议使用"保存图片"功能直接保存完整报告');
-            }}
+                        // 延迟一下避免浏览器阻止多个下载
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+
+                    button.textContent = `已保存 ${segments.length} 张图片!`;
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('分段保存失败:', error);
+                    const buttons = document.querySelector('.save-buttons');
+                    buttons.style.visibility = 'visible';
+                    button.textContent = '保存失败';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.disabled = false;
+                    }, 2000);
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                window.scrollTo(0, 0);
+            });
         </script>
     </body>
     </html>
     """
+
     return html
