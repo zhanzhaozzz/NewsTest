@@ -41,8 +41,9 @@ def _get_env_str(key: str, default: str = "") -> str:
 def _load_app_config(config_data: Dict) -> Dict:
     """加载应用配置"""
     app_config = config_data.get("app", {})
+    advanced = config_data.get("advanced", {})
     return {
-        "VERSION_CHECK_URL": app_config.get("version_check_url", ""),
+        "VERSION_CHECK_URL": advanced.get("version_check_url", ""),
         "SHOW_VERSION_UPDATE": app_config.get("show_version_update", True),
         "TIMEZONE": _get_env_str("TIMEZONE") or app_config.get("timezone", "Asia/Shanghai"),
     }
@@ -50,13 +51,14 @@ def _load_app_config(config_data: Dict) -> Dict:
 
 def _load_crawler_config(config_data: Dict) -> Dict:
     """加载爬虫配置"""
-    crawler_config = config_data.get("crawler", {})
+    advanced = config_data.get("advanced", {})
+    crawler_config = advanced.get("crawler", {})
     enable_crawler_env = _get_env_bool("ENABLE_CRAWLER")
     return {
         "REQUEST_INTERVAL": crawler_config.get("request_interval", 100),
         "USE_PROXY": crawler_config.get("use_proxy", False),
         "DEFAULT_PROXY": crawler_config.get("default_proxy", ""),
-        "ENABLE_CRAWLER": enable_crawler_env if enable_crawler_env is not None else crawler_config.get("enable_crawler", True),
+        "ENABLE_CRAWLER": enable_crawler_env if enable_crawler_env is not None else crawler_config.get("enabled", True),
     }
 
 
@@ -68,9 +70,11 @@ def _load_report_config(config_data: Dict) -> Dict:
     sort_by_position_env = _get_env_bool("SORT_BY_POSITION_FIRST")
     reverse_content_env = _get_env_bool("REVERSE_CONTENT_ORDER")
     max_news_env = _get_env_int("MAX_NEWS_PER_KEYWORD")
+    display_mode_env = _get_env_str("DISPLAY_MODE")
 
     return {
         "REPORT_MODE": _get_env_str("REPORT_MODE") or report_config.get("mode", "daily"),
+        "DISPLAY_MODE": display_mode_env or report_config.get("display_mode", "keyword"),
         "RANK_THRESHOLD": report_config.get("rank_threshold", 10),
         "SORT_BY_POSITION_FIRST": sort_by_position_env if sort_by_position_env is not None else report_config.get("sort_by_position_first", False),
         "MAX_NEWS_PER_KEYWORD": max_news_env or report_config.get("max_news_per_keyword", 0),
@@ -81,18 +85,21 @@ def _load_report_config(config_data: Dict) -> Dict:
 def _load_notification_config(config_data: Dict) -> Dict:
     """加载通知配置"""
     notification = config_data.get("notification", {})
+    advanced = config_data.get("advanced", {})
+    batch_size = advanced.get("batch_size", {})
+
     enable_notification_env = _get_env_bool("ENABLE_NOTIFICATION")
 
     return {
-        "ENABLE_NOTIFICATION": enable_notification_env if enable_notification_env is not None else notification.get("enable_notification", True),
-        "MESSAGE_BATCH_SIZE": notification.get("message_batch_size", 4000),
-        "DINGTALK_BATCH_SIZE": notification.get("dingtalk_batch_size", 20000),
-        "FEISHU_BATCH_SIZE": notification.get("feishu_batch_size", 29000),
-        "BARK_BATCH_SIZE": notification.get("bark_batch_size", 3600),
-        "SLACK_BATCH_SIZE": notification.get("slack_batch_size", 4000),
-        "BATCH_SEND_INTERVAL": notification.get("batch_send_interval", 1.0),
-        "FEISHU_MESSAGE_SEPARATOR": notification.get("feishu_message_separator", "---"),
-        "MAX_ACCOUNTS_PER_CHANNEL": _get_env_int("MAX_ACCOUNTS_PER_CHANNEL") or notification.get("max_accounts_per_channel", 3),
+        "ENABLE_NOTIFICATION": enable_notification_env if enable_notification_env is not None else notification.get("enabled", True),
+        "MESSAGE_BATCH_SIZE": batch_size.get("default", 4000),
+        "DINGTALK_BATCH_SIZE": batch_size.get("dingtalk", 20000),
+        "FEISHU_BATCH_SIZE": batch_size.get("feishu", 29000),
+        "BARK_BATCH_SIZE": batch_size.get("bark", 3600),
+        "SLACK_BATCH_SIZE": batch_size.get("slack", 4000),
+        "BATCH_SEND_INTERVAL": advanced.get("batch_send_interval", 1.0),
+        "FEISHU_MESSAGE_SEPARATOR": advanced.get("feishu_message_separator", "---"),
+        "MAX_ACCOUNTS_PER_CHANNEL": _get_env_int("MAX_ACCOUNTS_PER_CHANNEL") or advanced.get("max_accounts_per_channel", 3),
     }
 
 
@@ -100,7 +107,6 @@ def _load_push_window_config(config_data: Dict) -> Dict:
     """加载推送窗口配置"""
     notification = config_data.get("notification", {})
     push_window = notification.get("push_window", {})
-    time_range = push_window.get("time_range", {})
 
     enabled_env = _get_env_bool("PUSH_WINDOW_ENABLED")
     once_per_day_env = _get_env_bool("PUSH_WINDOW_ONCE_PER_DAY")
@@ -108,8 +114,8 @@ def _load_push_window_config(config_data: Dict) -> Dict:
     return {
         "ENABLED": enabled_env if enabled_env is not None else push_window.get("enabled", False),
         "TIME_RANGE": {
-            "START": _get_env_str("PUSH_WINDOW_START") or time_range.get("start", "08:00"),
-            "END": _get_env_str("PUSH_WINDOW_END") or time_range.get("end", "22:00"),
+            "START": _get_env_str("PUSH_WINDOW_START") or push_window.get("start", "08:00"),
+            "END": _get_env_str("PUSH_WINDOW_END") or push_window.get("end", "22:00"),
         },
         "ONCE_PER_DAY": once_per_day_env if once_per_day_env is not None else push_window.get("once_per_day", True),
     }
@@ -117,11 +123,96 @@ def _load_push_window_config(config_data: Dict) -> Dict:
 
 def _load_weight_config(config_data: Dict) -> Dict:
     """加载权重配置"""
-    weight = config_data.get("weight", {})
+    advanced = config_data.get("advanced", {})
+    weight = advanced.get("weight", {})
     return {
-        "RANK_WEIGHT": weight.get("rank_weight", 1.0),
-        "FREQUENCY_WEIGHT": weight.get("frequency_weight", 1.0),
-        "HOTNESS_WEIGHT": weight.get("hotness_weight", 1.0),
+        "RANK_WEIGHT": weight.get("rank", 0.6),
+        "FREQUENCY_WEIGHT": weight.get("frequency", 0.3),
+        "HOTNESS_WEIGHT": weight.get("hotness", 0.1),
+    }
+
+
+def _load_rss_config(config_data: Dict) -> Dict:
+    """加载 RSS 配置"""
+    rss = config_data.get("rss", {})
+    advanced = config_data.get("advanced", {})
+    advanced_rss = advanced.get("rss", {})
+    advanced_crawler = advanced.get("crawler", {})
+
+    # RSS 代理配置：优先使用 RSS 专属代理，否则复用 crawler 的 default_proxy
+    rss_proxy_url = advanced_rss.get("proxy_url", "") or advanced_crawler.get("default_proxy", "")
+
+    # 新鲜度过滤配置
+    freshness_filter = rss.get("freshness_filter", {})
+
+    # 验证并设置 max_age_days 默认值
+    raw_max_age = freshness_filter.get("max_age_days", 3)
+    try:
+        max_age_days = int(raw_max_age)
+        if max_age_days < 0:
+            print(f"[警告] RSS freshness_filter.max_age_days 为负数 ({max_age_days})，使用默认值 3")
+            max_age_days = 3
+    except (ValueError, TypeError):
+        print(f"[警告] RSS freshness_filter.max_age_days 格式错误 ({raw_max_age})，使用默认值 3")
+        max_age_days = 3
+
+    # RSS 配置直接从 config.yaml 读取，不再支持环境变量
+    return {
+        "ENABLED": rss.get("enabled", False),
+        "REQUEST_INTERVAL": advanced_rss.get("request_interval", 2000),
+        "TIMEOUT": advanced_rss.get("timeout", 15),
+        "USE_PROXY": advanced_rss.get("use_proxy", False),
+        "PROXY_URL": rss_proxy_url,
+        "FEEDS": rss.get("feeds", []),
+        "FRESHNESS_FILTER": {
+            "ENABLED": freshness_filter.get("enabled", True),  # 默认启用
+            "MAX_AGE_DAYS": max_age_days,
+        },
+        "NOTIFICATION": {
+            "ENABLED": advanced_rss.get("notification_enabled", False),
+        },
+    }
+
+
+def _load_ai_analysis_config(config_data: Dict) -> Dict:
+    """加载 AI 分析配置"""
+    # 优先从 ai_analysis 配置节读取（新版配置）
+    ai_analysis = config_data.get("ai_analysis", {})
+    # 兼容旧版 llm 配置节
+    llm = config_data.get("llm", {})
+    
+    # 环境变量覆盖
+    enabled_env = _get_env_bool("AI_ANALYSIS_ENABLED")
+    api_base_url_env = _get_env_str("LLM_API_BASE_URL") or _get_env_str("AI_API_BASE_URL")
+    api_key_env = _get_env_str("LLM_API_KEY") or _get_env_str("AI_API_KEY")
+    model_name_env = _get_env_str("LLM_MODEL_NAME") or _get_env_str("AI_MODEL_NAME")
+    
+    return {
+        # 优先使用 ai_analysis 配置，其次 llm 配置
+        "ENABLED": enabled_env if enabled_env is not None else (
+            ai_analysis.get("enabled", llm.get("enabled", False))
+        ),
+        "API_BASE_URL": api_base_url_env or (
+            ai_analysis.get("base_url") or llm.get("api_base_url", "")
+        ),
+        "API_KEY": api_key_env or (
+            ai_analysis.get("api_key") or llm.get("api_key", "")
+        ),
+        "MODEL_NAME": model_name_env or (
+            ai_analysis.get("model") or llm.get("model_name", "gpt-4o-mini")
+        ),
+        "PROVIDER": ai_analysis.get("provider") or llm.get("provider", "openai"),
+        "TIMEOUT": ai_analysis.get("timeout") or llm.get("timeout", 120),
+        "MAX_TOKENS": llm.get("max_tokens", 4096),
+        "TEMPERATURE": llm.get("temperature", 0.7),
+        "MAX_RETRIES": llm.get("max_retries", 2),
+        "FEATURES": llm.get("features", {}),
+        "CATEGORIES": llm.get("categories", []),
+        # PROMPT_FILE 应该只是文件名，不包含 config/ 前缀
+        "PROMPT_FILE": (ai_analysis.get("prompt_file", "ai_analysis_prompt.txt").replace("config/", "")),
+        "MAX_NEWS_FOR_ANALYSIS": ai_analysis.get("max_news_for_analysis", 50),
+        "INCLUDE_RSS": ai_analysis.get("include_rss", True),
+        "PUSH_MODE": ai_analysis.get("push_mode", "both"),
     }
 
 
@@ -166,33 +257,43 @@ def _load_storage_config(config_data: Dict) -> Dict:
 def _load_webhook_config(config_data: Dict) -> Dict:
     """加载 Webhook 配置"""
     notification = config_data.get("notification", {})
-    webhooks = notification.get("webhooks", {})
+    channels = notification.get("channels", {})
+
+    # 各渠道配置
+    feishu = channels.get("feishu", {})
+    dingtalk = channels.get("dingtalk", {})
+    wework = channels.get("wework", {})
+    telegram = channels.get("telegram", {})
+    email = channels.get("email", {})
+    ntfy = channels.get("ntfy", {})
+    bark = channels.get("bark", {})
+    slack = channels.get("slack", {})
 
     return {
         # 飞书
-        "FEISHU_WEBHOOK_URL": _get_env_str("FEISHU_WEBHOOK_URL") or webhooks.get("feishu_url", ""),
+        "FEISHU_WEBHOOK_URL": _get_env_str("FEISHU_WEBHOOK_URL") or feishu.get("webhook_url", ""),
         # 钉钉
-        "DINGTALK_WEBHOOK_URL": _get_env_str("DINGTALK_WEBHOOK_URL") or webhooks.get("dingtalk_url", ""),
+        "DINGTALK_WEBHOOK_URL": _get_env_str("DINGTALK_WEBHOOK_URL") or dingtalk.get("webhook_url", ""),
         # 企业微信
-        "WEWORK_WEBHOOK_URL": _get_env_str("WEWORK_WEBHOOK_URL") or webhooks.get("wework_url", ""),
-        "WEWORK_MSG_TYPE": _get_env_str("WEWORK_MSG_TYPE") or webhooks.get("wework_msg_type", "markdown"),
+        "WEWORK_WEBHOOK_URL": _get_env_str("WEWORK_WEBHOOK_URL") or wework.get("webhook_url", ""),
+        "WEWORK_MSG_TYPE": _get_env_str("WEWORK_MSG_TYPE") or wework.get("msg_type", "markdown"),
         # Telegram
-        "TELEGRAM_BOT_TOKEN": _get_env_str("TELEGRAM_BOT_TOKEN") or webhooks.get("telegram_bot_token", ""),
-        "TELEGRAM_CHAT_ID": _get_env_str("TELEGRAM_CHAT_ID") or webhooks.get("telegram_chat_id", ""),
+        "TELEGRAM_BOT_TOKEN": _get_env_str("TELEGRAM_BOT_TOKEN") or telegram.get("bot_token", ""),
+        "TELEGRAM_CHAT_ID": _get_env_str("TELEGRAM_CHAT_ID") or telegram.get("chat_id", ""),
         # 邮件
-        "EMAIL_FROM": _get_env_str("EMAIL_FROM") or webhooks.get("email_from", ""),
-        "EMAIL_PASSWORD": _get_env_str("EMAIL_PASSWORD") or webhooks.get("email_password", ""),
-        "EMAIL_TO": _get_env_str("EMAIL_TO") or webhooks.get("email_to", ""),
-        "EMAIL_SMTP_SERVER": _get_env_str("EMAIL_SMTP_SERVER") or webhooks.get("email_smtp_server", ""),
-        "EMAIL_SMTP_PORT": _get_env_str("EMAIL_SMTP_PORT") or webhooks.get("email_smtp_port", ""),
+        "EMAIL_FROM": _get_env_str("EMAIL_FROM") or email.get("from", ""),
+        "EMAIL_PASSWORD": _get_env_str("EMAIL_PASSWORD") or email.get("password", ""),
+        "EMAIL_TO": _get_env_str("EMAIL_TO") or email.get("to", ""),
+        "EMAIL_SMTP_SERVER": _get_env_str("EMAIL_SMTP_SERVER") or email.get("smtp_server", ""),
+        "EMAIL_SMTP_PORT": _get_env_str("EMAIL_SMTP_PORT") or email.get("smtp_port", ""),
         # ntfy
-        "NTFY_SERVER_URL": _get_env_str("NTFY_SERVER_URL") or webhooks.get("ntfy_server_url") or "https://ntfy.sh",
-        "NTFY_TOPIC": _get_env_str("NTFY_TOPIC") or webhooks.get("ntfy_topic", ""),
-        "NTFY_TOKEN": _get_env_str("NTFY_TOKEN") or webhooks.get("ntfy_token", ""),
+        "NTFY_SERVER_URL": _get_env_str("NTFY_SERVER_URL") or ntfy.get("server_url") or "https://ntfy.sh",
+        "NTFY_TOPIC": _get_env_str("NTFY_TOPIC") or ntfy.get("topic", ""),
+        "NTFY_TOKEN": _get_env_str("NTFY_TOKEN") or ntfy.get("token", ""),
         # Bark
-        "BARK_URL": _get_env_str("BARK_URL") or webhooks.get("bark_url", ""),
+        "BARK_URL": _get_env_str("BARK_URL") or bark.get("url", ""),
         # Slack
-        "SLACK_WEBHOOK_URL": _get_env_str("SLACK_WEBHOOK_URL") or webhooks.get("slack_webhook_url", ""),
+        "SLACK_WEBHOOK_URL": _get_env_str("SLACK_WEBHOOK_URL") or slack.get("webhook_url", ""),
     }
 
 
@@ -317,8 +418,22 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
     # 权重配置
     config["WEIGHT_CONFIG"] = _load_weight_config(config_data)
 
-    # 平台配置
-    config["PLATFORMS"] = config_data.get("platforms", [])
+    # 平台配置（支持嵌套结构：{enabled: bool, sources: [...]}）
+    platforms_config = config_data.get("platforms", {})
+    if isinstance(platforms_config, dict):
+        # 新版嵌套结构
+        config["PLATFORMS"] = platforms_config.get("sources", [])
+        config["PLATFORMS_ENABLED"] = platforms_config.get("enabled", True)
+    else:
+        # 旧版平面结构（向后兼容）
+        config["PLATFORMS"] = platforms_config
+        config["PLATFORMS_ENABLED"] = True
+
+    # RSS 配置
+    config["RSS"] = _load_rss_config(config_data)
+
+    # AI 分析配置
+    config["AI_ANALYSIS"] = _load_ai_analysis_config(config_data)
 
     # 存储配置
     config["STORAGE"] = _load_storage_config(config_data)

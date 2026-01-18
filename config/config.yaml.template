@@ -1,0 +1,609 @@
+# ═══════════════════════════════════════════════════════════════
+#                    TrendRadar 配置文件
+# ═══════════════════════════════════════════════════════════════
+
+
+# ===============================================================
+# 1. 基础设置
+# ===============================================================
+app:
+  # 时区配置（影响所有时间显示、推送窗口判断、数据存储）
+  # 常用时区：
+  #   - Asia/Shanghai (北京时间 UTC+8)
+  #   - America/New_York (美东时间 UTC-5/-4)
+  #   - Europe/London (伦敦时间 UTC+0/+1)
+  # 完整时区列表: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  timezone: "Asia/Shanghai"
+  show_version_update: true           # 显示版本更新提示
+
+
+# ===============================================================
+# 2. 数据源 - 热榜平台
+#
+# id: 平台唯一标识（勿修改）
+# name: 显示名称（可自定义，修改后不影响运行）
+# ===============================================================
+platforms:
+  enabled: true                         # 是否启用热榜平台抓取
+  sources:
+    # ========== 综合热榜 ==========
+    - id: "weibo"
+      name: "微博热搜"
+    - id: "baidu"
+      name: "百度热搜"
+    - id: "zhihu"
+      name: "知乎热榜"
+    - id: "toutiao"
+      name: "今日头条"
+    - id: "douyin"
+      name: "抖音热点"
+    - id: "tieba"
+      name: "百度贴吧"
+
+    # ========== 科技资讯 ==========
+    - id: "36kr"
+      name: "36氪"
+    - id: "ithome"
+      name: "IT之家"
+    - id: "bilibili-hot-search"
+      name: "B站热搜"
+    - id: "v2ex"
+      name: "V2EX"
+    - id: "juejin"
+      name: "掘金"
+    - id: "huxiu"
+      name: "虎嗅"
+    - id: "ifeng-tech"
+      name: "凤凰科技"
+
+    # ========== 财经资讯 ==========
+    - id: "cls-hot"
+      name: "财联社热门"
+    - id: "cls-telegraph"
+      name: "财联社电报"
+    - id: "wallstreetcn-hot"
+      name: "华尔街见闻"
+    - id: "thepaper"
+      name: "澎湃新闻"
+    - id: "eastmoney"
+      name: "东方财富"
+    - id: "xueqiu"
+      name: "雪球"
+
+    # ========== 综合门户 ==========
+    - id: "ifeng"
+      name: "凤凰网"
+    - id: "sina"
+      name: "新浪新闻"
+    - id: "netease"
+      name: "网易新闻"
+    - id: "qq"
+      name: "腾讯新闻"
+
+    # ========== 国际资讯 (可选) ==========
+    # - id: "hackernews"
+    #   name: "Hacker News"
+    # - id: "producthunt"
+    #   name: "Product Hunt"
+
+
+# ===============================================================
+# 3. 数据源 - RSS 订阅
+#
+# 与热榜数据分开存储，按时间流展示
+# 每个源配置：id(唯一标识)、name(显示名称)、url(订阅地址)
+# enabled: 可选，默认 true
+# max_age_days: 可选，覆盖全局 freshness_filter.max_age_days
+# ===============================================================
+rss:
+  enabled: true                       # 是否启用 RSS 抓取
+
+  # 文章新鲜度过滤配置（全局默认值）
+  # 过滤掉发布时间超过指定天数的旧文章，避免同一篇文章重复出现在推送中
+  #
+  # 过滤逻辑：
+  #   - 文章发布时间距当前时间（app.timezone 时区）超过 N 天则不推送
+  #   - 无发布时间的文章会被保留（不过滤）
+  #
+  # ⚠️ 过滤时机：在推送阶段过滤
+  #    - 所有文章都会存入数据库（MCP Server 的 AI 查询仍可访问）
+  #    - 只有新鲜的文章会被推送到通知渠道
+  freshness_filter:
+    enabled: true                     # 是否启用新鲜度过滤（默认启用）
+    max_age_days: 3                   # 最大文章年龄（天）
+                                      # - 正整数：只推送 N 天内的文章
+                                      # - 0：禁用过滤，推送所有文章
+
+  # 单个 feed 可配置 max_age_days 覆盖全局设置：
+  # - 不配置：使用全局 freshness_filter.max_age_days（默认 3 天）
+  # - 正整数：覆盖全局设置，只推送此天数内的文章
+  # - 0：禁用此频道的新鲜度过滤，推送所有文章
+  feeds:
+    # ========== AI/机器学习 ==========
+    - id: "huggingface-papers"
+      name: "HuggingFace Daily Papers"
+      url: "https://huggingface.co/papers/rss"
+      max_age_days: 1
+
+    - id: "openai-blog"
+      name: "OpenAI Blog"
+      url: "https://openai.com/blog/rss.xml"
+      max_age_days: 7
+
+    - id: "anthropic-news"
+      name: "Anthropic News"
+      url: "https://www.anthropic.com/news.rss"
+      max_age_days: 7
+      enabled: false                  # 需要确认 RSS 地址
+
+    - id: "deepmind-blog"
+      name: "DeepMind Blog"
+      url: "https://www.deepmind.com/blog/rss.xml"
+      max_age_days: 7
+      enabled: false                  # 需要确认 RSS 地址
+
+    - id: "ai-news-substack"
+      name: "AI News (Substack)"
+      url: "https://buttondown.email/ainews/rss"
+      max_age_days: 3
+      enabled: false                  # 需要确认 RSS 地址
+
+    # ========== 科技资讯 (国际) ==========
+    - id: "hacker-news"
+      name: "Hacker News"
+      url: "https://hnrss.org/frontpage"
+      max_age_days: 1
+
+    - id: "techcrunch"
+      name: "TechCrunch"
+      url: "https://techcrunch.com/feed/"
+
+    - id: "verge"
+      name: "The Verge"
+      url: "https://www.theverge.com/rss/index.xml"
+
+    - id: "arstechnica"
+      name: "Ars Technica"
+      url: "https://feeds.arstechnica.com/arstechnica/index"
+
+    - id: "wired"
+      name: "Wired"
+      url: "https://www.wired.com/feed/rss"
+
+    - id: "github-trending"
+      name: "GitHub Trending"
+      url: "https://mshibanami.github.io/GitHubTrendingRSS/daily/all.xml"
+      max_age_days: 1
+
+    # ========== 中文科技 ==========
+    - id: "ruanyifeng"
+      name: "阮一峰的网络日志"
+      url: "http://www.ruanyifeng.com/blog/atom.xml"
+      max_age_days: 7
+
+    - id: "sspai"
+      name: "少数派"
+      url: "https://sspai.com/feed"
+
+    - id: "36kr-rss"
+      name: "36氪"
+      url: "https://36kr.com/feed"
+
+    - id: "oschina"
+      name: "开源中国"
+      url: "https://www.oschina.net/news/rss"
+
+    - id: "infoq-cn"
+      name: "InfoQ 中文"
+      url: "https://www.infoq.cn/feed"
+      enabled: false                  # 需要确认 RSS 地址
+
+    # ========== 财经资讯 ==========
+    - id: "ftchinese"
+      name: "FT中文网"
+      url: "https://www.ftchinese.com/rss/feed"
+
+    - id: "bloomberg"
+      name: "Bloomberg Markets"
+      url: "https://feeds.bloomberg.com/markets/news.rss"
+
+    - id: "cnbc"
+      name: "CNBC Finance"
+      url: "https://www.cnbc.com/id/10001147/device/rss/rss.html"
+
+    - id: "wsj-markets"
+      name: "WSJ Markets"
+      url: "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
+
+    # ========== 综合资讯 ==========
+    - id: "bbc-news"
+      name: "BBC News"
+      url: "http://feeds.bbci.co.uk/news/rss.xml"
+
+    - id: "nytimes-world"
+      name: "NY Times World"
+      url: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
+
+    - id: "reuters-world"
+      name: "Reuters World"
+      url: "https://www.reuters.com/rssFeed/worldNews"
+      enabled: false                  # 需要确认 RSS 地址
+
+    # ========== 加密货币 (可选) ==========
+    - id: "coindesk"
+      name: "CoinDesk"
+      url: "https://www.coindesk.com/arc/outboundfeeds/rss/"
+      enabled: false
+
+    - id: "cointelegraph"
+      name: "Cointelegraph"
+      url: "https://cointelegraph.com/rss"
+      enabled: false
+
+    # 自定义源示例（可根据需要添加）
+    # - id: "custom-feed"
+    #   name: "自定义源"
+    #   url: "https://example.com/feed.xml"
+    #   enabled: false
+    #   max_age_days: 0
+
+
+# ===============================================================
+# 4. 报告模式
+#
+# 🔸 daily（当日汇总模式）
+#    • 推送时机：按时推送(默认每小时推送一次)
+#    • 显示内容：当日所有匹配新闻 + 新增新闻区域
+#    • 适用场景：日报总结、全面了解当日热点趋势
+#
+# 🔸 current（当前榜单模式）
+#    • 推送时机：按时推送(默认每小时推送一次)
+#    • 显示内容：当前榜单匹配新闻 + 新增新闻区域
+#    • 适用场景：实时热点追踪、了解当前最火的内容
+#
+# 🔸 incremental（增量监控模式）
+#    • 推送时机：有新增才推送
+#    • 显示内容：新出现的匹配频率词新闻
+#    • 适用场景：避免重复信息干扰
+# ===============================================================
+report:
+  mode: "current"                     # 可选: daily | current | incremental
+  display_mode: "keyword"             # 可选: keyword | platform
+                                      # keyword: 按关键词分组显示（默认）
+                                      # platform: 按平台/来源分组显示
+  rank_threshold: 5                   # 排名高亮阈值
+  sort_by_position_first: false       # true=按配置位置排序，false=按热点条数排序
+  max_news_per_keyword: 0             # 每个关键词最大显示数量（0=不限制）
+  reverse_content_order: false        # false=热点词汇统计在前，true=新增热点新闻在前
+
+
+# ===============================================================
+# 5. 推送通知
+#
+# ⚠️ 重要安全警告 ⚠️
+#
+# 🔴 请务必妥善保管好 webhooks，不要公开!!!
+# 🔴 如果你以 fork 的方式部署在 GitHub 上，请勿在此填写
+# 🔴 而是将 webhooks 填入 GitHub Secrets
+#    (Settings → Secrets and variables → Actions)
+# 🔴 否则：
+#    - 轻则：手机上收到大量垃圾广告推送
+#    - 重则：webhook 被滥用造成严重安全隐患
+#
+# 📌 多账号支持说明
+#
+# • 使用分号(;)分隔多个账号，如："url1;url2;url3"
+# • 需要配对的配置（如 Telegram 的 token 和 chat_id）数量必须一致
+# • 每个渠道最多支持 max_accounts_per_channel 个账号
+# • 邮箱已支持多收件人（逗号分隔）
+# ===============================================================
+notification:
+  enabled: true                       # 是否启用通知功能
+
+  # 🕐 推送时间窗口控制（可选功能）
+  # 用途：限制推送的时间范围，避免非工作时间打扰
+  # 适用场景：
+  #   - 只想在工作日白天接收推送（如 09:00-18:00）
+  #   - 希望在晚上固定时间收到汇总（如 20:00-22:00）
+  # 注意：GitHub Actions 执行时间不稳定，时间范围建议至少留足 2 小时
+  #       如果想要精准的定时推送，建议使用 Docker 部署在个人服务器上
+  push_window:
+    enabled: false                    # 是否启用推送时间窗口控制
+    start: "20:00"                    # 开始时间（北京时间）
+    end: "22:00"                      # 结束时间（北京时间）
+    once_per_day: true                # true=窗口内只推送一次，false=窗口内每次执行都推送
+
+  # 推送渠道配置
+  channels:
+    feishu:
+      webhook_url: ""                 # 飞书机器人 webhook URL
+
+    dingtalk:
+      webhook_url: ""                 # 钉钉机器人 webhook URL
+
+    wework:
+      webhook_url: ""                 # 企业微信机器人 webhook URL
+      msg_type: "markdown"            # 消息类型：markdown(群机器人) | text(个人微信应用)
+
+    telegram:
+      bot_token: ""                   # Telegram Bot Token
+      chat_id: ""                     # Telegram Chat ID
+
+    email:
+      from: ""                        # 发件人邮箱地址
+      password: ""                    # 发件人邮箱密码或授权码
+      to: ""                          # 收件人邮箱，多个用逗号分隔
+      smtp_server: ""                 # SMTP 服务器（可选，留空自动识别）
+      smtp_port: ""                   # SMTP 端口（可选，留空自动识别）
+
+    ntfy:
+      server_url: "https://ntfy.sh"   # ntfy 服务器地址（可改为自托管）
+      topic: ""                       # ntfy 主题名称
+      token: ""                       # ntfy 访问令牌（可选，用于私有主题）
+
+    bark:
+      url: ""                         # Bark 推送 URL（格式：https://api.day.app/your_device_key）
+
+    slack:
+      webhook_url: ""                 # Slack Incoming Webhook URL
+
+
+# ===============================================================
+# 6. 存储配置
+# ===============================================================
+storage:
+  # 存储后端选择
+  # - auto: 自动选择（GitHub Actions 且配置了远程存储 → remote，否则 → local）
+  # - local: 本地 SQLite + TXT/HTML 文件
+  # - remote: 远程云存储（S3 兼容协议，支持 R2/OSS/COS 等）
+  backend: "auto"
+
+  # 数据格式选项
+  formats:
+    sqlite: true                      # 主存储（必须启用）
+    txt: false                        # 是否生成 TXT 快照
+    html: true                       # 是否生成 HTML 报告（⚠️ 邮件推送必须设为 true）
+
+  # 本地存储配置
+  local:
+    data_dir: "output"                # 数据目录
+    retention_days: 0                 # 保留天数（0=永久保留）
+
+  # 远程存储配置（S3 兼容协议）
+  # 支持: Cloudflare R2, 阿里云 OSS, 腾讯云 COS, AWS S3, MinIO 等
+  # 建议将敏感信息配置在 GitHub Secrets 或环境变量中
+  remote:
+    retention_days: 0                 # 保留天数（0=永久保留）
+    # S3 兼容配置（或使用环境变量 S3_ENDPOINT_URL 等）
+    endpoint_url: ""                  # 服务端点
+                                      # Cloudflare R2: https://<account_id>.r2.cloudflarestorage.com
+                                      # 阿里云 OSS: https://oss-cn-hangzhou.aliyuncs.com
+                                      # 腾讯云 COS: https://cos.ap-guangzhou.myqcloud.com
+    bucket_name: ""                   # 存储桶名称
+    access_key_id: ""                 # 访问密钥 ID
+    secret_access_key: ""             # 访问密钥
+    region: ""                        # 区域（可选，部分服务商需要）
+
+  # 数据拉取配置（从远程同步到本地）
+  # 用于 MCP Server 等场景：爬虫存到远程，MCP 拉取到本地分析
+  pull:
+    enabled: false                    # 是否启用启动时自动拉取
+    days: 7                           # 拉取最近 N 天的数据
+
+
+# ===============================================================
+# 7. 高级设置（一般无需修改）
+# ===============================================================
+advanced:
+  # 版本检查
+  version_check_url: "https://raw.githubusercontent.com/sansan0/TrendRadar/refs/heads/master/version"
+
+  # 爬虫设置
+  crawler:
+    enabled: true                     # 是否启用爬取新闻功能
+    request_interval: 1000            # 请求间隔（毫秒）
+    use_proxy: false                  # 是否启用代理
+    default_proxy: "http://127.0.0.1:10801"
+
+  # RSS 设置
+  rss:
+    request_interval: 2000            # 请求间隔（毫秒）
+    timeout: 15                       # 请求超时（秒）
+    use_proxy: false                  # 是否使用代理
+    proxy_url: ""                     # RSS 专属代理（留空则使用 crawler.default_proxy）
+    notification_enabled: true        # 是否启用 RSS 通知推送
+
+  # 排序权重（用于重新排序不同平台的热搜）
+  # 合起来等于 1
+  weight:
+    rank: 0.6                         # 排名权重
+    frequency: 0.3                    # 频次权重
+    hotness: 0.1                      # 热度权重
+
+  # 多账号限制
+  max_accounts_per_channel: 3         # 每个渠道最大账号数量
+
+  # 消息分批大小（字节）- 内部配置，请勿修改
+  batch_size:
+    default: 4000
+    dingtalk: 20000
+    feishu: 30000
+    bark: 4000
+    slack: 4000
+  batch_send_interval: 3              # 批次发送间隔（秒）
+  feishu_message_separator: "━━━━━━━━━━━━━━━━━━━"
+
+
+# ===============================================================
+# 8. 内容抓取配置 (AI 分析前置模块)
+#
+# 用于抓取热点新闻的正文内容，为 AI 分析提供数据支持
+# ===============================================================
+content_scraper:
+  enabled: true                        # 是否启用内容抓取
+  top_n: 20                            # 只抓取热度 Top N 的新闻正文（控制成本）
+
+  # 抓取方式配置（按优先级排列）
+  methods:
+    # Jina Reader - 免费 API，推荐优先使用
+    # 免费额度：1M tokens/月
+    # 官网：https://jina.ai/reader/
+    jina_reader:
+      enabled: true
+      api_url: "https://r.jina.ai/"   # 免费 API 地址
+      api_key: ""                      # 可选的 API Key（用于提高配额）
+      timeout: 30                      # 请求超时（秒）
+      return_format: "text"            # 返回格式：text 或 markdown
+
+    # Playwright - 浏览器自动化
+    # 适用于需要 JS 渲染的网站（微博、抖音等）
+    playwright:
+      enabled: true
+      headless: true                   # 无头模式
+      timeout: 60                      # 请求超时（秒）
+      wait_until: "networkidle"        # 等待条件：load | domcontentloaded | networkidle
+
+    # Simple - 轻量爬虫
+    # 使用 requests + readability，速度快但不支持 JS 渲染
+    simple:
+      enabled: true
+      timeout: 15                      # 请求超时（秒）
+      verify_ssl: true                 # 是否验证 SSL 证书
+
+  # 域名路由规则（可选）
+  # 指定特定域名使用特定抓取方式，覆盖自动选择
+  domain_rules:
+    "weibo.com": "playwright"
+    "weibo.cn": "playwright"
+    "douyin.com": "playwright"
+    "zhihu.com": "jina_reader"
+    "36kr.com": "jina_reader"
+
+  # 内容存储配置
+  storage:
+    retention_days: 7                  # 内容保留天数（0=永久）
+
+
+# ===============================================================
+# 9. LLM 大模型配置 (AI 分析核心)
+#
+# 支持 NewAPI / OneAPI / OpenAI 兼容的 API
+# ===============================================================
+llm:
+  enabled: true                        # 是否启用 AI 分析
+
+  # API 配置
+  # 支持 NewAPI、OneAPI 或任何 OpenAI 兼容的 API
+  provider: "deepseek"                 # 提供商类型（仅用于日志，实际使用 api_base_url）
+
+  # ⚠️ 建议使用环境变量配置敏感信息：
+  #    LLM_API_BASE_URL, LLM_API_KEY, LLM_MODEL_NAME
+  api_base_url: "https://api.deepseek.com/v1"  # DeepSeek API 地址
+  api_key: ""                          # DeepSeek API Key（请填写您的密钥）
+  model_name: "deepseek-chat"          # DeepSeek-V3.2 模型
+
+  # 请求参数
+  timeout: 120                         # 请求超时（秒）
+  max_tokens: 4096                     # 最大输出 token 数
+  temperature: 0.7                     # 温度参数（0-1，越低越确定）
+  max_retries: 2                       # 最大重试次数
+
+  # AI 分析功能开关
+  features:
+    daily_briefing: true               # 每日简报生成（核心功能）
+    smart_category: true               # 智能分类（AI/科技/财经等）
+    key_insight: true                  # 核心洞察提取
+    deep_research: false               # 深度研究报告（消耗较多 token）
+
+  # 分类配置
+  categories:
+    - id: "ai"
+      name: "人工智能"
+      keywords: ["AI", "人工智能", "GPT", "大模型", "LLM", "机器学习", "深度学习"]
+    - id: "tech"
+      name: "科技互联网"
+      keywords: ["科技", "互联网", "手机", "电脑", "数码", "软件", "硬件"]
+    - id: "finance"
+      name: "财经商业"
+      keywords: ["股市", "财经", "金融", "投资", "基金", "A股", "港股", "美股"]
+    - id: "crypto"
+      name: "加密货币"
+      keywords: ["比特币", "以太坊", "加密货币", "区块链", "Web3", "NFT"]
+    - id: "entertainment"
+      name: "娱乐热点"
+      keywords: ["娱乐", "明星", "电影", "电视剧", "综艺", "游戏"]
+    - id: "society"
+      name: "社会民生"
+      keywords: ["社会", "民生", "教育", "医疗", "房产", "就业"]
+
+
+# ===============================================================
+# 10. AI 热点分析配置
+# ===============================================================
+ai_analysis:
+  enabled: true                          # 是否启用 AI 热点分析
+  
+  # API 配置
+  provider: "deepseek"                   # API 提供商：openai | deepseek | gemini
+  api_key: ""                            # API Key（也可通过环境变量 AI_API_KEY 设置，请填写您的密钥）
+  base_url: "https://api.deepseek.com/v1"  # 自定义 API 地址
+  model: "deepseek-chat"                 # 模型名称
+  timeout: 90                            # 请求超时（秒）
+  
+  # 分析配置
+  max_news_for_analysis: 50              # 最多分析多少条新闻
+  include_rss: true                      # 是否包含 RSS 新闻进行分析
+  push_mode: "both"                      # 推送模式：both（热榜+RSS）| hotlist | rss
+  prompt_file: "ai_analysis_prompt.txt"  # 提示词模板文件
+  
+  # 说明：
+  # - AI 分析会对热榜和 RSS 新闻进行深度分析
+  # - 生成趋势概述、热度走势、情感倾向、跨平台关联等洞察
+  # - 分析结果会附加在通知推送中
+  # - 支持 OpenAI、DeepSeek、Gemini 等兼容接口
+
+
+# ===============================================================
+# 11. 独立展示区配置
+# ===============================================================
+standalone_display:
+  enabled: false                         # 是否启用独立展示区
+  
+  # 要独立展示的热榜平台（填写平台 id）
+  platforms:
+    # - "weibo"                          # 微博热搜
+    # - "zhihu"                          # 知乎热榜
+  
+  # 要独立展示的 RSS 源（填写 feed id）
+  rss_feeds:
+    # - "hacker-news"                    # Hacker News
+    # - "ruanyifeng"                     # 阮一峰的网络日志
+  
+  max_items: 20                          # 每个源最多展示多少条
+  
+  # 说明：
+  # - 独立展示区会在通知推送中单独展示指定平台/RSS源的内容
+  # - 不受关键词过滤限制，展示该源的所有热门内容
+  # - 适合关注特定平台的完整热榜或特定RSS源的最新文章
+
+
+# ===============================================================
+# 12. 报告生成配置
+# ===============================================================
+report_generation:
+  # 输出格式
+  formats:
+    html: true                         # 生成 HTML 报告（精美版）
+    markdown: true                     # 生成 Markdown 报告（便于分享）
+    pdf: false                         # 生成 PDF 报告（需要 weasyprint）
+
+  # 报告样式（参考 DeepResearch 风格）
+  style:
+    theme: "professional"              # 主题：professional | minimal | dark
+    include_sources: true              # 是否包含来源链接
+    include_summary: true              # 是否包含 AI 摘要
+    include_insights: true             # 是否包含洞察分析
+    max_news_per_category: 10          # 每个分类最大新闻数
+
+  # 输出目录
+  output_dir: "output/reports"
