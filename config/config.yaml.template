@@ -490,7 +490,7 @@ content_scraper:
 # 支持 NewAPI / OneAPI / OpenAI 兼容的 API
 # ===============================================================
 llm:
-  enabled: true                        # 是否启用 AI 分析
+  enabled: false                       # 是否启用 AI 分析（暂时禁用）
 
   # API 配置
   # 支持 NewAPI、OneAPI 或任何 OpenAI 兼容的 API
@@ -541,7 +541,7 @@ llm:
 # 10. AI 热点分析配置
 # ===============================================================
 ai_analysis:
-  enabled: true                          # 是否启用 AI 热点分析
+  enabled: false                         # 是否启用 AI 热点分析（暂时禁用）
   
   # API 配置
   provider: "deepseek"                   # API 提供商：openai | deepseek | gemini
