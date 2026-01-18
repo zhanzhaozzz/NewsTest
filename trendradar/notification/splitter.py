@@ -35,11 +35,18 @@ def split_content_into_batches(
     rss_new_items: Optional[list] = None,
     timezone: str = "Asia/Shanghai",
     display_mode: str = "keyword",
+    ai_content: Optional[str] = None,
+    standalone_data: Optional[Dict] = None,
+    rank_threshold: int = 10,
+    ai_stats: Optional[Dict] = None,
+    report_type: str = "热点分析报告",
 ) -> List[str]:
-    """分批处理消息内容，确保词组标题+至少第一条新闻的完整性（支持热榜+RSS合并）
+    """分批处理消息内容，确保词组标题+至少第一条新闻的完整性（支持热榜+RSS合并+AI分析+独立展示区）
 
     热榜统计与RSS统计并列显示，热榜新增与RSS新增并列显示。
     reverse_content_order 控制统计和新增的前后顺序。
+    AI分析内容默认放在最后（footer之前）。
+    独立展示区放在新增区块之后、失败ID之前。
 
     Args:
         report_data: 报告数据字典，包含 stats, new_titles, failed_ids, total_new_count
@@ -55,6 +62,11 @@ def split_content_into_batches(
         rss_new_items: RSS 新增条目列表（可选，用于新增区块）
         timezone: 时区名称（用于 RSS 时间格式化）
         display_mode: 显示模式 (keyword=按关键词分组, platform=按平台分组)
+        ai_content: AI 分析内容（已渲染的字符串，可选）
+        standalone_data: 独立展示区数据（可选），包含 platforms 和 rss_feeds 列表
+        rank_threshold: 排名阈值
+        ai_stats: AI 分析统计数据（可选），包含 total_news, analyzed_news, max_news_limit 等
+        report_type: 报告类型
 
     Returns:
         分批后的消息内容列表

@@ -23,6 +23,7 @@ def render_html_content(
     rss_items: Optional[List[Dict]] = None,
     rss_new_items: Optional[List[Dict]] = None,
     display_mode: str = "keyword",
+    ai_analysis: Optional[Dict] = None,
 ) -> str:
     """渲染HTML内容
 
@@ -37,6 +38,7 @@ def render_html_content(
         rss_items: RSS 统计条目列表（可选）
         rss_new_items: RSS 新增条目列表（可选）
         display_mode: 显示模式 ("keyword"=按关键词分组, "platform"=按平台分组)
+        ai_analysis: AI 分析结果字典，包含 daily_briefing, insights, categories
 
     Returns:
         渲染后的 HTML 字符串
@@ -592,6 +594,107 @@ def render_html_content(
                 -webkit-box-orient: vertical;
                 overflow: hidden;
             }
+
+            /* AI 分析区块样式 */
+            .ai-section {
+                margin-bottom: 32px;
+                padding: 20px;
+                background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+                border-radius: 12px;
+                border-left: 4px solid #0ea5e9;
+            }
+
+            .ai-section-header {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-bottom: 16px;
+            }
+
+            .ai-section-icon {
+                font-size: 20px;
+            }
+
+            .ai-section-title {
+                font-size: 16px;
+                font-weight: 600;
+                color: #0369a1;
+            }
+
+            .ai-briefing {
+                font-size: 14px;
+                line-height: 1.7;
+                color: #334155;
+                white-space: pre-wrap;
+            }
+
+            .ai-briefing h1, .ai-briefing h2, .ai-briefing h3 {
+                color: #0369a1;
+                margin-top: 16px;
+                margin-bottom: 8px;
+            }
+
+            .ai-briefing h1 { font-size: 18px; }
+            .ai-briefing h2 { font-size: 16px; }
+            .ai-briefing h3 { font-size: 14px; }
+
+            .ai-briefing ul, .ai-briefing ol {
+                margin: 8px 0;
+                padding-left: 20px;
+            }
+
+            .ai-briefing li {
+                margin: 4px 0;
+            }
+
+            .ai-briefing strong {
+                color: #0c4a6e;
+            }
+
+            .ai-insights {
+                margin-top: 20px;
+                padding: 16px;
+                background: white;
+                border-radius: 8px;
+                border: 1px solid #e0f2fe;
+            }
+
+            .ai-insights-title {
+                font-size: 14px;
+                font-weight: 600;
+                color: #0369a1;
+                margin-bottom: 12px;
+            }
+
+            .insight-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 8px;
+                margin-bottom: 10px;
+                padding: 8px 12px;
+                background: #f0f9ff;
+                border-radius: 6px;
+            }
+
+            .insight-item:last-child {
+                margin-bottom: 0;
+            }
+
+            .insight-domain {
+                color: #0369a1;
+                font-size: 12px;
+                font-weight: 600;
+                background: #bae6fd;
+                padding: 2px 8px;
+                border-radius: 4px;
+                flex-shrink: 0;
+            }
+
+            .insight-content {
+                font-size: 13px;
+                color: #334155;
+                line-height: 1.5;
+            }
         </style>
     </head>
     <body>
@@ -656,6 +759,60 @@ def render_html_content(
             </div>
 
             <div class="content">"""
+
+    # AI 分析区块 (核心新增)
+    if ai_analysis:
+        daily_briefing = ai_analysis.get('daily_briefing', '')
+        insights = ai_analysis.get('insights', [])
+        
+        if daily_briefing or insights:
+            html += """
+                <div class="ai-section">
+                    <div class="ai-section-header">
+                        <span class="ai-section-icon">🤖</span>
+                        <span class="ai-section-title">AI 智能简报</span>
+                    </div>"""
+            
+            if daily_briefing:
+                # 简单处理 Markdown 格式 (基本转换)
+                briefing_html = html_escape(daily_briefing)
+                # 处理标题
+                import re
+                briefing_html = re.sub(r'^### (.+)$', r'<h3>\1</h3>', briefing_html, flags=re.MULTILINE)
+                briefing_html = re.sub(r'^## (.+)$', r'<h2>\1</h2>', briefing_html, flags=re.MULTILINE)
+                briefing_html = re.sub(r'^# (.+)$', r'<h1>\1</h1>', briefing_html, flags=re.MULTILINE)
+                # 处理粗体
+                briefing_html = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', briefing_html)
+                # 处理列表
+                briefing_html = re.sub(r'^- (.+)$', r'<li>\1</li>', briefing_html, flags=re.MULTILINE)
+                briefing_html = re.sub(r'^• (.+)$', r'<li>\1</li>', briefing_html, flags=re.MULTILINE)
+                # 处理换行
+                briefing_html = briefing_html.replace('\n\n', '</p><p>').replace('\n', '<br>')
+                
+                html += f"""
+                    <div class="ai-briefing">
+                        <p>{briefing_html}</p>
+                    </div>"""
+            
+            if insights:
+                html += """
+                    <div class="ai-insights">
+                        <div class="ai-insights-title">💡 今日洞察</div>"""
+                
+                for insight in insights:
+                    domain = html_escape(insight.get('domain', '综合'))
+                    content = html_escape(insight.get('content', ''))
+                    html += f"""
+                        <div class="insight-item">
+                            <span class="insight-domain">{domain}</span>
+                            <span class="insight-content">{content}</span>
+                        </div>"""
+                
+                html += """
+                    </div>"""
+            
+            html += """
+                </div>"""
 
     # 处理失败ID错误信息
     if report_data["failed_ids"]:

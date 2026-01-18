@@ -47,3 +47,12 @@ output/
 *.sqlite
 *.log
 
+# Configuration files with sensitive data
+config/config.yaml
+.env
+.env.local
+*.key
+*.pem
+
+# Keep template files
+!config/config.yaml.template

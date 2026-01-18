@@ -174,6 +174,48 @@ def _load_rss_config(config_data: Dict) -> Dict:
     }
 
 
+def _load_ai_analysis_config(config_data: Dict) -> Dict:
+    """加载 AI 分析配置"""
+    # 优先从 ai_analysis 配置节读取（新版配置）
+    ai_analysis = config_data.get("ai_analysis", {})
+    # 兼容旧版 llm 配置节
+    llm = config_data.get("llm", {})
+    
+    # 环境变量覆盖
+    enabled_env = _get_env_bool("AI_ANALYSIS_ENABLED")
+    api_base_url_env = _get_env_str("LLM_API_BASE_URL") or _get_env_str("AI_API_BASE_URL")
+    api_key_env = _get_env_str("LLM_API_KEY") or _get_env_str("AI_API_KEY")
+    model_name_env = _get_env_str("LLM_MODEL_NAME") or _get_env_str("AI_MODEL_NAME")
+    
+    return {
+        # 优先使用 ai_analysis 配置，其次 llm 配置
+        "ENABLED": enabled_env if enabled_env is not None else (
+            ai_analysis.get("enabled", llm.get("enabled", False))
+        ),
+        "API_BASE_URL": api_base_url_env or (
+            ai_analysis.get("base_url") or llm.get("api_base_url", "")
+        ),
+        "API_KEY": api_key_env or (
+            ai_analysis.get("api_key") or llm.get("api_key", "")
+        ),
+        "MODEL_NAME": model_name_env or (
+            ai_analysis.get("model") or llm.get("model_name", "gpt-4o-mini")
+        ),
+        "PROVIDER": ai_analysis.get("provider") or llm.get("provider", "openai"),
+        "TIMEOUT": ai_analysis.get("timeout") or llm.get("timeout", 120),
+        "MAX_TOKENS": llm.get("max_tokens", 4096),
+        "TEMPERATURE": llm.get("temperature", 0.7),
+        "MAX_RETRIES": llm.get("max_retries", 2),
+        "FEATURES": llm.get("features", {}),
+        "CATEGORIES": llm.get("categories", []),
+        # PROMPT_FILE 应该只是文件名，不包含 config/ 前缀
+        "PROMPT_FILE": (ai_analysis.get("prompt_file", "ai_analysis_prompt.txt").replace("config/", "")),
+        "MAX_NEWS_FOR_ANALYSIS": ai_analysis.get("max_news_for_analysis", 50),
+        "INCLUDE_RSS": ai_analysis.get("include_rss", True),
+        "PUSH_MODE": ai_analysis.get("push_mode", "both"),
+    }
+
+
 def _load_storage_config(config_data: Dict) -> Dict:
     """加载存储配置"""
     storage = config_data.get("storage", {})
@@ -376,11 +418,22 @@ def load_config(config_path: Optional[str] = None) -> Dict[str, Any]:
     # 权重配置
     config["WEIGHT_CONFIG"] = _load_weight_config(config_data)
 
-    # 平台配置
-    config["PLATFORMS"] = config_data.get("platforms", [])
+    # 平台配置（支持嵌套结构：{enabled: bool, sources: [...]}）
+    platforms_config = config_data.get("platforms", {})
+    if isinstance(platforms_config, dict):
+        # 新版嵌套结构
+        config["PLATFORMS"] = platforms_config.get("sources", [])
+        config["PLATFORMS_ENABLED"] = platforms_config.get("enabled", True)
+    else:
+        # 旧版平面结构（向后兼容）
+        config["PLATFORMS"] = platforms_config
+        config["PLATFORMS_ENABLED"] = True
 
     # RSS 配置
     config["RSS"] = _load_rss_config(config_data)
+
+    # AI 分析配置
+    config["AI_ANALYSIS"] = _load_ai_analysis_config(config_data)
 
     # 存储配置
     config["STORAGE"] = _load_storage_config(config_data)

@@ -234,6 +234,65 @@ class NewsAnalyzer:
             )
             return has_matched_news or has_new_news
 
+    def _run_ai_analysis(
+        self,
+        stats: List[Dict],
+        rss_items: Optional[List[Dict]],
+        mode: str,
+        report_type: str,
+        id_to_name: Optional[Dict],
+    ):
+        """执行 AI 分析"""
+        from trendradar.llm import HotspotAnalyzer, AIAnalysisResult
+        
+        ai_config = self.ctx.config.get("AI_ANALYSIS", {})
+        if not ai_config.get("ENABLED", False):
+            return None
+
+        print("[AI] 正在进行 AI 分析...")
+        try:
+            analyzer = HotspotAnalyzer(ai_config, self.ctx.get_time)
+
+            # 提取平台列表
+            platforms = list(id_to_name.values()) if id_to_name else []
+
+            # 提取关键词列表
+            keywords = [s.get("word", "") for s in stats if s.get("word")] if stats else []
+
+            result = analyzer.analyze(
+                stats=stats,
+                rss_stats=rss_items,
+                report_mode=mode,
+                report_type=report_type,
+                platforms=platforms,
+                keywords=keywords,
+            )
+
+            if result.success:
+                if result.error:
+                    # 成功但有警告（如 JSON 解析问题但使用了原始文本）
+                    print(f"[AI] 分析完成（有警告: {result.error}）")
+                else:
+                    print("[AI] 分析完成")
+            else:
+                print(f"[AI] 分析失败: {result.error}")
+
+            return result
+        except Exception as e:
+            import traceback
+            error_type = type(e).__name__
+            error_msg = str(e)
+            # 截断过长的错误消息
+            if len(error_msg) > 200:
+                error_msg = error_msg[:200] + "..."
+            print(f"[AI] 分析出错 ({error_type}): {error_msg}")
+            # 详细错误日志到 stderr
+            import sys
+            print(f"[AI] 详细错误堆栈:", file=sys.stderr)
+            traceback.print_exc(file=sys.stderr)
+            from trendradar.llm import AIAnalysisResult
+            return AIAnalysisResult(success=False, error=f"{error_type}: {error_msg}")
+
     def _load_analysis_data(
         self,
         quiet: bool = False,
@@ -293,6 +352,150 @@ class NewsAnalyzer:
                 }
         return title_info
 
+    def _prepare_standalone_data(
+        self,
+        results: Dict,
+        id_to_name: Dict,
+        title_info: Optional[Dict] = None,
+        rss_items: Optional[List[Dict]] = None,
+    ) -> Optional[Dict]:
+        """
+        从原始数据中提取独立展示区数据
+        
+        Args:
+            results: 原始爬取结果 {platform_id: {title: title_data}}
+            id_to_name: 平台 ID 到名称的映射
+            title_info: 标题元信息（含排名历史、时间等）
+            rss_items: RSS 条目列表
+        
+        Returns:
+            独立展示数据字典，如果未启用返回 None
+        """
+        standalone_config = self.ctx.config.get("STANDALONE_DISPLAY", {})
+        if not standalone_config.get("ENABLED", False):
+            return None
+
+        platform_ids = standalone_config.get("PLATFORMS", [])
+        rss_feed_ids = standalone_config.get("RSS_FEEDS", [])
+        max_items = standalone_config.get("MAX_ITEMS", 20)
+
+        if not platform_ids and not rss_feed_ids:
+            return None
+
+        standalone_data = {
+            "platforms": [],
+            "rss_feeds": [],
+        }
+
+        # 找出最新批次时间（类似 current 模式的过滤逻辑）
+        latest_time = None
+        if title_info:
+            for source_titles in title_info.values():
+                for title_data in source_titles.values():
+                    last_time = title_data.get("last_time", "")
+                    if last_time:
+                        if latest_time is None or last_time > latest_time:
+                            latest_time = last_time
+
+        # 提取热榜平台数据
+        for platform_id in platform_ids:
+            if platform_id not in results:
+                continue
+
+            platform_name = id_to_name.get(platform_id, platform_id)
+            platform_titles = results[platform_id]
+
+            items = []
+            for title, title_data in platform_titles.items():
+                # 获取元信息（如果有 title_info）
+                meta = {}
+                if title_info and platform_id in title_info and title in title_info[platform_id]:
+                    meta = title_info[platform_id][title]
+
+                # 只保留当前在榜的话题（last_time 等于最新时间）
+                if latest_time and meta:
+                    if meta.get("last_time") != latest_time:
+                        continue
+
+                # 使用当前热榜的排名数据（title_data）进行排序
+                # title_data 包含的是爬虫返回的当前排名，用于保证独立展示区的顺序与热榜一致
+                current_ranks = title_data.get("ranks", [])
+                current_rank = current_ranks[-1] if current_ranks else 0
+
+                # 用于显示的排名范围：合并历史排名和当前排名
+                historical_ranks = meta.get("ranks", []) if meta else []
+                # 合并去重，保持顺序
+                all_ranks = historical_ranks.copy()
+                for rank in current_ranks:
+                    if rank not in all_ranks:
+                        all_ranks.append(rank)
+                display_ranks = all_ranks if all_ranks else current_ranks
+
+                item = {
+                    "title": title,
+                    "url": title_data.get("url", ""),
+                    "mobileUrl": title_data.get("mobileUrl", ""),
+                    "rank": current_rank,  # 用于排序的当前排名
+                    "ranks": display_ranks,  # 用于显示的排名范围（历史+当前）
+                    "first_time": meta.get("first_time", ""),
+                    "last_time": meta.get("last_time", ""),
+                    "count": meta.get("count", 1),
+                }
+                items.append(item)
+
+            # 按当前排名排序
+            items.sort(key=lambda x: x["rank"] if x["rank"] > 0 else 9999)
+
+            # 限制条数
+            if max_items > 0:
+                items = items[:max_items]
+
+            if items:
+                standalone_data["platforms"].append({
+                    "id": platform_id,
+                    "name": platform_name,
+                    "items": items,
+                })
+
+        # 提取 RSS 数据
+        if rss_items and rss_feed_ids:
+            # 按 feed_id 分组
+            feed_items_map = {}
+            for item in rss_items:
+                feed_id = item.get("feed_id", "")
+                if feed_id in rss_feed_ids:
+                    if feed_id not in feed_items_map:
+                        feed_items_map[feed_id] = {
+                            "name": item.get("feed_name", feed_id),
+                            "items": [],
+                        }
+                    feed_items_map[feed_id]["items"].append({
+                        "title": item.get("title", ""),
+                        "url": item.get("url", ""),
+                        "published_at": item.get("published_at", ""),
+                        "author": item.get("author", ""),
+                    })
+
+            # 限制条数并添加到结果
+            for feed_id in rss_feed_ids:
+                if feed_id in feed_items_map:
+                    feed_data = feed_items_map[feed_id]
+                    items = feed_data["items"]
+                    if max_items > 0:
+                        items = items[:max_items]
+                    if items:
+                        standalone_data["rss_feeds"].append({
+                            "id": feed_id,
+                            "name": feed_data["name"],
+                            "items": items,
+                        })
+
+        # 如果没有任何数据，返回 None
+        if not standalone_data["platforms"] and not standalone_data["rss_feeds"]:
+            return None
+
+        return standalone_data
+
     def _run_analysis_pipeline(
         self,
         data_source: Dict,
@@ -308,8 +511,9 @@ class NewsAnalyzer:
         quiet: bool = False,
         rss_items: Optional[List[Dict]] = None,
         rss_new_items: Optional[List[Dict]] = None,
+        report_type: str = "热点分析报告",
     ) -> Tuple[List[Dict], Optional[str]]:
-        """统一的分析流水线：数据处理 → 统计计算 → HTML生成"""
+        """统一的分析流水线：数据处理 → 统计计算 → AI分析 → HTML生成"""
 
         # 统计计算（使用 AppContext）
         stats, total_titles = self.ctx.count_frequency(
@@ -332,6 +536,27 @@ class NewsAnalyzer:
                 self.ctx.rank_threshold,
             )
 
+        # AI 分析（如果启用，在 HTML 生成之前进行）
+        ai_analysis_dict = None
+        ai_config = self.ctx.config.get("AI_ANALYSIS", {})
+        if ai_config.get("ENABLED", False):
+            ai_result = self._run_ai_analysis(
+                stats, rss_items, mode, report_type, id_to_name
+            )
+            if ai_result and ai_result.success:
+                # 转换为 HTML 渲染需要的格式
+                ai_analysis_dict = {
+                    "daily_briefing": ai_result.summary or "",
+                    "insights": [
+                        {"domain": "热度走势", "content": ai_result.keyword_analysis},
+                        {"domain": "情感倾向", "content": ai_result.sentiment},
+                        {"domain": "跨平台关联", "content": ai_result.cross_platform},
+                        {"domain": "潜在影响", "content": ai_result.impact},
+                        {"domain": "值得关注", "content": ai_result.signals},
+                    ] if ai_result.keyword_analysis else [],
+                    "conclusion": ai_result.conclusion or "",
+                }
+
         # HTML生成（如果启用）
         html_file = None
         if self.ctx.config["STORAGE"]["FORMATS"]["HTML"]:
@@ -346,6 +571,7 @@ class NewsAnalyzer:
                 update_info=self.update_info if self.ctx.config["SHOW_VERSION_UPDATE"] else None,
                 rss_items=rss_items,
                 rss_new_items=rss_new_items,
+                ai_analysis=ai_analysis_dict,
             )
 
         return stats, html_file
@@ -361,8 +587,9 @@ class NewsAnalyzer:
         html_file_path: Optional[str] = None,
         rss_items: Optional[List[Dict]] = None,
         rss_new_items: Optional[List[Dict]] = None,
+        standalone_data: Optional[Dict] = None,
     ) -> bool:
-        """统一的通知发送逻辑，包含所有判断条件，支持热榜+RSS合并推送"""
+        """统一的通知发送逻辑，包含所有判断条件，支持热榜+RSS合并推送+AI分析+独立展示区"""
         has_notification = self._has_notification_configured()
         cfg = self.ctx.config
 
@@ -373,7 +600,8 @@ class NewsAnalyzer:
 
         # 计算热榜匹配条数
         news_count = sum(len(stat.get("titles", [])) for stat in stats) if stats else 0
-        rss_count = len(rss_items) if rss_items else 0
+        # rss_items 是统计列表 [{"word": "xx", "count": 5, ...}]，需累加 count
+        rss_count = sum(stat.get("count", 0) for stat in rss_items) if rss_items else 0
 
         if (
             cfg["ENABLE_NOTIFICATION"]
@@ -409,13 +637,21 @@ class NewsAnalyzer:
                     else:
                         print(f"推送窗口控制：今天首次推送")
 
+            # AI 分析（如果启用）
+            ai_result = None
+            ai_config = cfg.get("AI_ANALYSIS", {})
+            if ai_config.get("ENABLED", False):
+                ai_result = self._run_ai_analysis(
+                    stats, rss_items, mode, report_type, id_to_name
+                )
+
             # 准备报告数据
             report_data = self.ctx.prepare_report(stats, failed_ids, new_titles, id_to_name, mode)
 
             # 是否发送版本更新信息
             update_info_to_send = self.update_info if cfg["SHOW_VERSION_UPDATE"] else None
 
-            # 使用 NotificationDispatcher 发送到所有渠道（合并热榜+RSS）
+            # 使用 NotificationDispatcher 发送到所有渠道（合并热榜+RSS+AI分析+独立展示区）
             dispatcher = self.ctx.create_notification_dispatcher()
             results = dispatcher.dispatch_all(
                 report_data=report_data,
@@ -426,6 +662,8 @@ class NewsAnalyzer:
                 html_file_path=html_file_path,
                 rss_items=rss_items,
                 rss_new_items=rss_new_items,
+                ai_analysis=ai_result,
+                standalone_data=standalone_data,
             )
 
             if not results:
@@ -507,12 +745,18 @@ class NewsAnalyzer:
             global_filters=global_filters,
             rss_items=rss_items,
             rss_new_items=rss_new_items,
+            report_type=mode_strategy["summary_report_type"],
         )
 
         if html_file:
             print(f"{summary_type}报告已生成: {html_file}")
 
-        # 发送通知（合并RSS）
+        # 准备独立展示区数据
+        standalone_data = self._prepare_standalone_data(
+            all_results, id_to_name, title_info, rss_items
+        )
+
+        # 发送通知（合并RSS+独立展示区）
         self._send_notification_if_needed(
             stats,
             mode_strategy["summary_report_type"],
@@ -523,6 +767,7 @@ class NewsAnalyzer:
             html_file_path=html_file,
             rss_items=rss_items,
             rss_new_items=rss_new_items,
+            standalone_data=standalone_data,
         )
 
         return html_file
@@ -560,6 +805,7 @@ class NewsAnalyzer:
             quiet=True,
             rss_items=rss_items,
             rss_new_items=rss_new_items,
+            report_type="汇总报告",
         )
 
         if html_file:
@@ -1033,6 +1279,7 @@ class NewsAnalyzer:
                     global_filters=global_filters,
                     rss_items=rss_items,
                     rss_new_items=rss_new_items,
+                    report_type=mode_strategy["realtime_report_type"],
                 )
 
                 combined_id_to_name = {**historical_id_to_name, **id_to_name}
@@ -1040,9 +1287,13 @@ class NewsAnalyzer:
                 if html_file:
                     print(f"HTML报告已生成: {html_file}")
 
-                # 发送实时通知（使用完整历史数据的统计结果，合并RSS）
+                # 发送实时通知（使用完整历史数据的统计结果，合并RSS+独立展示区）
                 summary_html = None
                 if mode_strategy["should_send_realtime"]:
+                    # 准备独立展示区数据
+                    standalone_data = self._prepare_standalone_data(
+                        all_results, combined_id_to_name, historical_title_info, rss_items
+                    )
                     self._send_notification_if_needed(
                         stats,
                         mode_strategy["realtime_report_type"],
@@ -1053,6 +1304,7 @@ class NewsAnalyzer:
                         html_file_path=html_file,
                         rss_items=rss_items,
                         rss_new_items=rss_new_items,
+                        standalone_data=standalone_data,
                     )
             else:
                 print("❌ 严重错误：无法读取刚保存的数据文件")
@@ -1071,13 +1323,18 @@ class NewsAnalyzer:
                 global_filters=global_filters,
                 rss_items=rss_items,
                 rss_new_items=rss_new_items,
+                report_type=mode_strategy["realtime_report_type"],
             )
             if html_file:
                 print(f"HTML报告已生成: {html_file}")
 
-            # 发送实时通知（如果需要，合并RSS）
+            # 发送实时通知（如果需要，合并RSS+独立展示区）
             summary_html = None
             if mode_strategy["should_send_realtime"]:
+                # 准备独立展示区数据
+                standalone_data = self._prepare_standalone_data(
+                    results, id_to_name, title_info, rss_items
+                )
                 self._send_notification_if_needed(
                     stats,
                     mode_strategy["realtime_report_type"],
@@ -1088,6 +1345,7 @@ class NewsAnalyzer:
                     html_file_path=html_file,
                     rss_items=rss_items,
                     rss_new_items=rss_new_items,
+                    standalone_data=standalone_data,
                 )
 
         # 生成汇总报告（如果需要）
